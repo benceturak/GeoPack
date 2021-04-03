@@ -29,7 +29,7 @@ def normalizeTime1Row(time):
             row[2] -= 1
 
         #day
-        m = row[1]
+        m = int(row[1])
         while m > 12:
             m -= 12
         while m < 0:
