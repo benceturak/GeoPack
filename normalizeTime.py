@@ -71,7 +71,7 @@ def normalizeTime(time):
         return re
 
 
-
-time = np.array([[2021, 5, 15, 14, 47, 35], [1998, 10, 23, 5, 8, 35]])
-print(time)
-print(normalizeTime(time))
+if __name__ == "__main__":
+    time = np.array([[2021, 5, 15, 14, 47, 35], [1998, 10, 23, 5, 8, 35]])
+    print(time)
+    print(normalizeTime(time))
