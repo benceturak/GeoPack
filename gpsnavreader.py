@@ -2,6 +2,7 @@ import numpy as np
 from normalformtofloat import normalFormToFloat
 import math
 from epoch import Epoch
+from satellite import Satellite
 
 class GPSNavReader(object):
 
@@ -19,124 +20,53 @@ class GPSNavReader(object):
         finally:
             self.fid.close()
 
-    def getValidEph(self, prn, epoch):
+    def getSatellite(self, prn):
 
-        #frame = np.append([epoch - np.array([0, 0, 0, 1, 0, 0])], [epoch + np.array([0, 0, 0, 1, 0, 0])], axis=0)
-        min = epoch - Epoch(np.array([0, 0, 0, 1, 0, 0]))
-        max = epoch + Epoch(np.array([0, 0, 0, 1, 0, 0]))
-        #frame = normalizeTime(frame)
+        sat = Satellite(prn)
+        for i in self.navigationDatas[prn]:
+            nav = {}
+            nav['epoch'] = Epoch(i[0:6])
 
-        for nav in self.navigationDatas[prn]:
-            ephEpoch = Epoch(nav[0:6])
-            if min <= ephEpoch and ephEpoch <= max:
+            nav['a0'] = i[6]
+            nav['a1'] = i[7]
+            nav['a2'] = i[8]
 
-                ephemerids = {}
+            nav['IODE'] = i[9]
+            nav['Crs'] = i[10]
+            nav['deltan'] = i[11]
+            nav['M0'] = i[12]
 
-                ephemerids['epoch'] = nav[0:6]
+            nav['Cuc'] = i[13]
+            nav['e'] = i[14]
+            nav['Cus'] = i[15]
+            nav['a'] = i[16]**2
 
-                ephemerids['a0'] = nav[6]
-                ephemerids['a1'] = nav[7]
-                ephemerids['a2'] = nav[8]
+            nav['TOE'] = i[17]
+            nav['Cic'] = i[18]
+            nav['OMEGA'] = i[19]
+            nav['Cis'] = i[20]
 
-                ephemerids['IODE'] = nav[9]
-                ephemerids['Crs'] = nav[10]
-                ephemerids['deltan'] = nav[11]
-                ephemerids['M0'] = nav[12]
+            nav['i0'] = i[21]
+            nav['Crc'] = i[22]
+            nav['omega'] = i[23]
+            nav['OMEGADOT'] = i[24]
 
-                ephemerids['Cuc'] = nav[13]
-                ephemerids['e'] = nav[14]
-                ephemerids['Cus'] = nav[15]
-                ephemerids['a'] = nav[16]**2
+            nav['idot'] = i[25]
+            nav['codesL2'] = i[26]
+            nav['GPSWEEK'] = i[27]
+            nav['flagL2P'] = i[28]
 
-                ephemerids['TOE'] = nav[17]
-                ephemerids['Cic'] = nav[18]
-                ephemerids['OMEGA'] = nav[19]
-                ephemerids['Cis'] = nav[20]
+            nav['SVaccuracy'] = i[29]
+            nav['SVhealth'] = i[30]
+            nav['TGD'] = i[31]
+            nav['IODC'] = i[32]
 
-                ephemerids['i0'] = nav[21]
-                ephemerids['Crc'] = nav[22]
-                ephemerids['omega'] = nav[23]
-                ephemerids['OMEGADOT'] = nav[24]
+            nav['transmTime'] = i[33]
+            nav['fitInterval'] = i[34]
 
-                ephemerids['idot'] = nav[25]
-                ephemerids['codesL2'] = nav[26]
-                ephemerids['GPSWEEK'] = nav[27]
-                ephemerids['flagL2P'] = nav[28]
+            sat.addNavMess(nav)
 
-                ephemerids['SVaccuracy'] = nav[29]
-                ephemerids['SVhealth'] = nav[30]
-                ephemerids['TGD'] = nav[31]
-                ephemerids['IODC'] = nav[32]
-
-                ephemerids['transmTime'] = nav[33]
-                ephemerids['fitInterval'] = nav[34]
-
-                return ephemerids
-                break
-
-    def getSatPos(self, prn, epoch):
-
-        ephemerids = self.getValidEph(prn, epoch)
-
-
-        t_temp = ephemerids['TOE']
-
-        DOW = 0
-
-        while t_temp >= 86400:
-            t_temp -= 86400
-            DOW += 1
-
-
-
-        t = DOW*86400 + epoch.getUTC[3]*3600 + epoch.getUTC[4]*60 + epoch.getUTC[5]
-
-        GM = 3.986005*10**14
-        omegaE = 7.2921151467*10**(-5)
-
-        tk = t - ephemerids['TOE']
-
-        n0 = math.sqrt(GM/ephemerids['a']**3)
-        n = n0 + ephemerids['deltan']
-        Mk = ephemerids['M0'] + n*tk
-
-        Ek = Mk
-
-        d = 1
-        while d > 10**(-12):
-            E_l = Ek
-            Ek = Mk + ephemerids['e']*math.sin(Ek)
-            d = abs(Ek - E_l)
-
-        nu = 2*math.atan(math.sqrt(1 + ephemerids['e'])/math.sqrt(1 - ephemerids['e'])*math.tan(Ek/2))
-
-        phik = nu + ephemerids['omega']
-
-        duk = ephemerids['Cuc']*math.cos(2*phik) + ephemerids['Cus']*math.sin(2*phik)
-        drk = ephemerids['Crc']*math.cos(2*phik) + ephemerids['Crs']*math.sin(2*phik)
-        dik = ephemerids['Cic']*math.cos(2*phik) + ephemerids['Cis']*math.sin(2*phik)
-
-        uk = phik + duk
-        rk = ephemerids['a']*(1 - ephemerids['e']*math.cos(Ek))+ drk
-        ik = ephemerids['i0'] + ephemerids['idot']*tk + dik
-
-        xk = rk*math.cos(uk)
-        yk = rk*math.sin(uk)
-        zk = 0
-
-        coordsOrbPlane = np.array([[xk], [yk], [zk]])
-
-        OMEGAk = ephemerids['OMEGA'] + (ephemerids['OMEGADOT'] - omegaE)*tk - omegaE*ephemerids['TOE']
-
-        ROMEGA = np.array([[math.cos(OMEGAk), -math.sin(OMEGAk), 0], [-math.sin(OMEGAk), math.cos(OMEGAk), 0], [0, 0, 1]])
-        Ri = np.array([[1, 0, 0], [0, math.cos(ik), -math.sin(ik)], [0, math.sin(ik), math.cos(ik)]])
-
-
-        coords = np.dot(np.dot(ROMEGA, Ri), coordsOrbPlane)
-
-        return coords
-
-
+        return sat
 
 
 
@@ -185,7 +115,8 @@ class GPSNavReader(object):
 
         line = self.fid.readline()
         col1 = normalFormToFloat(line[3:22].strip())
-        col2 = normalFormToFloat(line[22:41].strip())
+        if line[22:41].strip() != '':
+            col2 = normalFormToFloat(line[22:41].strip())
         epoch = np.append(epoch, [[col1, col2]], axis=1)
 
 
