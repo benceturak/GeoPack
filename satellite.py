@@ -1,7 +1,8 @@
 from epoch import Epoch
 import numpy as np
 import math
-
+from point import Point
+from rotation import Rotation
 class Satellite(object):
 
     def __init__(self, prn='', nav={}):
@@ -77,13 +78,13 @@ class Satellite(object):
         yk = rk*math.sin(uk)
         zk = 0
 
-        coordsOrbPlane = np.array([[xk], [yk], [zk]])
+        coordsOrbPlane = Point(coord=np.array([xk, yk, zk].T))
 
         OMEGAk = ephemerids['OMEGA'] + (ephemerids['OMEGADOT'] - omegaE)*tk - omegaE*ephemerids['TOE']
-        ROMEGA = np.array([[math.cos(OMEGAk), -math.sin(OMEGAk), 0], [math.sin(OMEGAk), math.cos(OMEGAk), 0], [0, 0, 1]])
-        Ri = np.array([[1, 0, 0], [0, math.cos(ik), -math.sin(ik)], [0, math.sin(ik), math.cos(ik)]])
+
+        R = Rotation(x=ik, z=OMEGAk, orther="zxy")
 
 
-        coords = np.dot(np.dot(ROMEGA, Ri), coordsOrbPlane)
+        coords = R*coordsOrbPlane
 
         return coords
