@@ -14,14 +14,14 @@ class RNXReader(object):
             self.fid = open(self.fileName, 'r')
 
             self._readHeader()
-            self._readBody()
 
         finally:
             self.fid.close()
 
+    def getValidTimeFrame(self):
+        pass
 
-
-    def _readBody(self):
+    def readObservations(self):
         line = self.fid.readline()
 
         i = 1
