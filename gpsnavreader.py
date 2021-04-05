@@ -1,5 +1,5 @@
 import numpy as np
-from normalFormToFloat import normalFormToFloat
+from normalformtofloat import normalFormToFloat
 import math
 from epoch import Epoch
 
