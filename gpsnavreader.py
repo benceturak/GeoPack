@@ -36,44 +36,44 @@ class GPSNavReader(object):
         sat = Satellite(prn)
         for i in self.navigationDatas[prn]:
             nav = {}
-            nav['epoch'] = Epoch(i[0:6])
+            nav['epoch'] = i[0]
 
-            nav['a0'] = i[6]
-            nav['a1'] = i[7]
-            nav['a2'] = i[8]
+            nav['a0'] = i[1]
+            nav['a1'] = i[2]
+            nav['a2'] = i[3]
 
-            nav['IODE'] = i[9]
-            nav['Crs'] = i[10]
-            nav['deltan'] = i[11]
-            nav['M0'] = i[12]
+            nav['IODE'] = i[4]
+            nav['Crs'] = i[5]
+            nav['deltan'] = i[6]
+            nav['M0'] = i[7]
 
-            nav['Cuc'] = i[13]
-            nav['e'] = i[14]
-            nav['Cus'] = i[15]
-            nav['a'] = i[16]**2
+            nav['Cuc'] = i[8]
+            nav['e'] = i[9]
+            nav['Cus'] = i[10]
+            nav['a'] = i[11]**2
 
-            nav['TOE'] = i[17]
-            nav['Cic'] = i[18]
-            nav['OMEGA'] = i[19]
-            nav['Cis'] = i[20]
+            nav['TOE'] = i[12]
+            nav['Cic'] = i[13]
+            nav['OMEGA'] = i[14]
+            nav['Cis'] = i[15]
 
-            nav['i0'] = i[21]
-            nav['Crc'] = i[22]
-            nav['omega'] = i[23]
-            nav['OMEGADOT'] = i[24]
+            nav['i0'] = i[16]
+            nav['Crc'] = i[17]
+            nav['omega'] = i[18]
+            nav['OMEGADOT'] = i[19]
 
-            nav['idot'] = i[25]
-            nav['codesL2'] = i[26]
-            nav['GPSWEEK'] = i[27]
-            nav['flagL2P'] = i[28]
+            nav['idot'] = i[20]
+            nav['codesL2'] = i[21]
+            nav['GPSWEEK'] = i[22]
+            nav['flagL2P'] = i[23]
 
-            nav['SVaccuracy'] = i[29]
-            nav['SVhealth'] = i[30]
-            nav['TGD'] = i[31]
-            nav['IODC'] = i[32]
+            nav['SVaccuracy'] = i[24]
+            nav['SVhealth'] = i[25]
+            nav['TGD'] = i[26]
+            nav['IODC'] = i[27]
 
-            nav['transmTime'] = i[33]
-            nav['fitInterval'] = i[34]
+            nav['transmTime'] = i[28]
+            nav['fitInterval'] = i[29]
 
             sat.addNavMess(nav)
 
