@@ -2,6 +2,8 @@ import numpy as np
 import datetime
 import math
 
+class TimeError(Exception):pass
+
 class Epoch(object):
 
     def __init__(self, dt):
@@ -23,7 +25,7 @@ class Epoch(object):
     @property
     def getTOW(self):
 
-        return (self.getMJD() - int(self.getMJD()))*24*3600
+        return self.getDOW*86400 + self.dt[3]*3600 + self.dt[4]*60 + self.dt[5]
 
     @property
     def getDOW(self):
@@ -107,14 +109,20 @@ class Epoch(object):
         return not (self.dt == other.dt).all()
 
     def __gt__(self, other):
-        for i in np.append([self.dt == other.dt], [self.dt > other.dt], axis=0).T:
-            if not i[0] and i[1]:
+        for i in np.array([self.dt == other.dt, self.dt < other.dt, self.dt > other.dt]).T:
+            if i[1]:
+                return False
+                break
+            if not i[0] and i[2]:
                 return True
                 break
         return False
 
     def __lt__(self, other):
-        for i in np.append([self.dt == other.dt], [self.dt < other.dt], axis=0).T:
+        for i in np.array([self.dt == other.dt, self.dt < other.dt, self.dt > other.dt]).T:
+            if i[2]:
+                return False
+                break
             if not i[0] and i[1]:
                 return True
                 break
