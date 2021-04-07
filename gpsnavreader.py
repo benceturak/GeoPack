@@ -3,18 +3,29 @@ from normalformtofloat import normalFormToFloat
 import math
 from epoch import Epoch
 from satellite import Satellite
+import logging
 
 class GPSNavReader(object):
+    """
+        GPSNAvReader class to read RINEX navigation (GPS) file
+        RINEX v2.10
+
+            :param fileName: name of navigation file (string)
+    """
 
     def __init__(self, fileName):
+        """GPSNavReader condtructor
 
-        self.fileName = fileName
-        self.comments = []
-        self.navigationDatas = {}
+        """
+
+        self.fileName = fileName#filename
+        self.comments = []#comment records
+        self.navigationDatas = {}#navigation datas
         try:
             self.fid = open(self.fileName, 'r')
-
+            #start read of header
             self._readHeader()
+            #start read of navigation datas
             self._readBody()
 
         finally:
@@ -71,20 +82,26 @@ class GPSNavReader(object):
 
 
     def _readBody(self):
+        """read navigation messages
+
+        """
         line = self.fid.readline()
 
-
+        #read navigation datas row by row
         while line:
 
-
+            #read satellite navigation datas in a valid epoch
             self._readEpochSatNav(line)
             line = self.fid.readline()
 
     def _readEpochSatNav(self, line):
-        prn = "G" + line[0:2].replace(" ","0")
 
 
+        #read epoch
+        prn = "G" + line[0:2].replace(" ","0")#satellite PRN extanded system markar and 0 if necessary
 
+
+        #read 2 digits year and convert to 4 digits
         if int(line[3:5]) > 80:
             year = 1900 + int(line[3:5])
         else:
@@ -97,49 +114,57 @@ class GPSNavReader(object):
         sec = float(line[17:22])
 
 
-
+        #satellite clock error polynom coefrficients
         clockBias = normalFormToFloat(line[22:41].strip())
         clockDrift = normalFormToFloat(line[41:60].strip())
         clockDriftRate = normalFormToFloat(line[60:79].strip())
 
-        epoch = np.array([[year, month, day, hour, min, sec, clockBias, clockDrift, clockDriftRate]])
+        navDatas = np.array([[Epoch(np.array([year, month, day, hour, min, sec])), clockBias, clockDrift, clockDriftRate]])
 
+        #read datas row by row
         for i in range(6):
             line = self.fid.readline()
-            col1 = normalFormToFloat(line[3:22].strip())
-            col2 = normalFormToFloat(line[22:41].strip())
-            col3 = normalFormToFloat(line[41:60].strip())
-            col4 = normalFormToFloat(line[60:79].strip())
+            col1 = normalFormToFloat(line[3:22].strip())#cell 1
+            col2 = normalFormToFloat(line[22:41].strip())#cell 2
+            col3 = normalFormToFloat(line[41:60].strip())#cell 3
+            col4 = normalFormToFloat(line[60:79].strip())#cell 4
 
-            epoch = np.append(epoch, [[col1, col2, col3, col4]], axis=1)
+            navDatas = np.append(navDatas, [[col1, col2, col3, col4]], axis=1)
 
+
+        #read last residual row
         line = self.fid.readline()
         col1 = normalFormToFloat(line[3:22].strip())
         if line[22:41].strip() != '':
             col2 = normalFormToFloat(line[22:41].strip())
-        epoch = np.append(epoch, [[col1, col2]], axis=1)
+        navDatas = np.append(navDatas, [[col1, col2]], axis=1)
 
 
-        if prn in self.navigationDatas.keys():
-            self.navigationDatas[prn] = np.append(self.navigationDatas[prn], epoch, axis=0)
-        else:
-            self.navigationDatas[prn] = epoch
+        if prn in self.navigationDatas.keys():#if already there is at least one observation to this satellite
+            self.navigationDatas[prn] = np.append(self.navigationDatas[prn], navDatas, axis=0)
+        else:#if there is not observation to this satellite
+            self.navigationDatas[prn] = navDatas
 
 
     def _readHeader(self):
+        """read RINEX nav header v2.0
 
+        """
+
+        #read navigation file row by row
         while True:
 
-            line = self.fid.readline()
+            line = self.fid.readline()#read row
 
-            type = line[60:].replace("/","_").replace(":","_").replace("-","_").replace("#","").replace(",","").replace(" ","").replace("\n","")
+            type = line[60:].replace("/","_").replace(":","_").replace("-","_").replace("#","").replace(",","").replace(" ","").replace("\n","")#replace special chars in title
 
 
             try:
-                print("self."+type+"(line)")
+                #read header record
                 eval("self."+type+"(line)")
+                logging.info(line[60:].strip() + " record is readed")
             except AttributeError as er:
-                print(er)
+                logging.warning(line[60:].strip() + " cannot be readed")
 
             if type == 'ENDOFHEADER':
                 break
@@ -191,12 +216,9 @@ if __name__ == "__main__":
     reader = GPSNavReader("61300921A.19n")
 
 
-    #print(reader.navigationDatas['G08'][0,0] == 2019)
+    print(reader.navigationDatas['G08'])
 
-
-    #print(reader.getValidEph('G08', Epoch(np.array([2019, 4, 2, 7, 48, 52]))))
-    print(reader.getSatPos('G08', Epoch(np.array([2019, 4, 2, 7, 48, 52]))))
     #print(reader.beta)
-    #print(reader.delta_utc)
+    print(reader.delta_utc)
     #print(np.shape(reader.getObservations('G08', "S1", 0)))
     #print(reader.getObservations('G08', "S2", 0))
