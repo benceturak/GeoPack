@@ -8,10 +8,10 @@ class Epoch(object):
     """
         Epoch class to contain datetime and perform operations
 
-            :param dt: UTC time in vector [year, month, day, hour, minute, second](NumPy array)
+            :param dt: datetime in vector [year, month, day, hour, minute, second](NumPy array)
     """
 
-    def __init__(self, dt):
+    def __init__(self, dt, system="GPS"):
         """Epoch constructor
 
         """
@@ -19,8 +19,8 @@ class Epoch(object):
         self.dt = dt
 
     @property
-    def getUTC(self):
-        """get UTC time
+    def getDateTime(self, system="GPS"):
+        """get DateTime time
 
         """
         return self.dt
@@ -48,13 +48,6 @@ class Epoch(object):
         """
         return int((math.floor(math.floor(self.getMJD()) - Epoch(np.array([1980,1,6,0,0,0])).getMJD()))%7)
 
-    @property
-    def getGPStime(self):
-        """get GPS time
-            :return: np.array([GPSweek, TOW, DOW])
-        """
-        return np.array([self.getGPSweek, self.getTOW, self.getDOW])
-
 
     def getMJD(self):
         """get Modified Julian Date
@@ -74,14 +67,14 @@ class Epoch(object):
         months = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
 
         #seconds
-        while self.dt[5] > 60:
+        while self.dt[5] > 59:
             self.dt[5] -= 60
             self.dt[4] += 1
         while self.dt[5] < 0:
             self.dt[5] += 60
             self.dt[4] -= 1
         #minutes
-        while self.dt[4] > 60:
+        while self.dt[4] > 59:
             self.dt[4] -= 60
             self.dt[3] += 1
         while self.dt[4] < 0:
@@ -105,13 +98,13 @@ class Epoch(object):
 
         daysOfMonth = months[m-1]
 
-        if self.dt[0] % 4 == 0 and m == 1:
+        if self.dt[0] % 4 == 0 and m == 1:#leap year, february
             daysOfMonth += 1
 
         while self.dt[2] > daysOfMonth:
             self.dt[2] -= daysOfMonth
             self.dt[1] += 1
-        while self.dt[2] < 0:
+        while self.dt[2] < 1:
             self.dt[2] += daysOfMonth
             self.dt[1] -= 1
 
@@ -119,7 +112,7 @@ class Epoch(object):
         while self.dt[1] > 12:
             self.dt[1] -= 12
             self.dt[0] += 1
-        while self.dt[1] < 0:
+        while self.dt[1] < 1:
             self.dt[1] += 12
             self.dt[0] -= 1
 
@@ -173,11 +166,11 @@ class Epoch(object):
 if __name__ == "__main__":
 
     a = Epoch(np.array([2021,4,18,15,0,0]))
-    b = Epoch(np.array([0,8,27,7,0,0]))
+    b = Epoch(np.array([0,8,27,7,0,60]))
     c = Epoch(np.array([2019,4,2,8,0,0]))
 
     #print(a + b)
-    print(a>=c)
+    print(a+b)
     print(c<a)
 
     print(a.getGPSweek)

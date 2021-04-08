@@ -285,7 +285,7 @@ class RNXReader(object):
                 :opt: observation optionally can be extended obs informations [LLI, signal strenth] (int 0 or 1), default:0
 
         """
-        #key of obervation type
+        #key of observation type
         key = self.observationTypes.index(obsType)
 
         return np.append(self.observations[sat][:,0:1], self.observations[sat][:,1+key*3:1+key*3+1+2*opt], axis=1)
