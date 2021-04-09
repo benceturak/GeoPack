@@ -31,23 +31,42 @@ class Satellite(object):
 
     def getEpochsInValidTimeFrame(self, timeDiff=Epoch(np.array([0,0,0,0,15,0]))):
         """method to get epochs in the given messages valid time frame
+        
             :param timeDiff: difference between 2 epoch (Epoch), default 15 minutes
-            :return: list of epochs in the valid time frame
+            :return: list of epochs in the valid time frame (np.ndarray(Epoch))
         """
+
+        #initalize vars
         epochs = np.empty((1,0))
+        ends = np.empty((1,0))
 
+
+        #check navigation datas message by message
         for nav in self.navigationDatas:
+            #begin of frame
             begin = nav['epoch'] - Epoch(np.array([0,0,0,1,0,0]))
-
+            #end of frame
             end = nav['epoch'] + Epoch(np.array([0,0,0,1,0,0]))
-            e = begin
-            while True:
-                epochs = np.append(epochs,  [[e]], axis=1)
-                e += timeDiff
-                if e > end:
-                    epochs = np.append(epochs,  [[end]], axis=1)
-                    break
-            return epochs
+
+            #store all end of frame for check the duplicate epochs on borders
+            ends = np.append(ends, [[end]])
+
+            ep = begin
+            #check borders
+            for e in ends:
+                #if present frame begin with the lasts' epoch skip the first epoch
+                if e == begin:
+                    ep += timeDiff
+            #store every epoch with timeDiff differences while reaches the end
+            while ep < end:
+
+                epochs = np.append(epochs,  [[ep]], axis=1)
+                ep += timeDiff
+            #if last ep greater then end
+            if ep > end:
+                #append end of frame to the list
+                epochs = np.append(epochs,  [[end]], axis=1)
+        return epochs
 
 
     def getValidEph(self, epoch):
