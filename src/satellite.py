@@ -29,8 +29,29 @@ class Satellite(object):
         """
         self.navigationDatas.append(nav)
 
+    def getEpochsInValidTimeFrame(self, timeDiff=Epoch(np.array([0,0,0,0,15,0]))):
+        """method to get epochs in the given messages valid time frame
+            :param timeDiff: difference between 2 epoch (Epoch), default 15 minutes
+            :return: list of epochs in the valid time frame
+        """
+        epochs = np.empty((1,0))
+
+        for nav in self.navigationDatas:
+            begin = nav['epoch'] - Epoch(np.array([0,0,0,1,0,0]))
+
+            end = nav['epoch'] + Epoch(np.array([0,0,0,1,0,0]))
+            e = begin
+            while True:
+                epochs = np.append(epochs,  [[e]], axis=1)
+                e += timeDiff
+                if e > end:
+                    epochs = np.append(epochs,  [[end]], axis=1)
+                    break
+            return epochs
+
+
     def getValidEph(self, epoch):
-        """get valid navigetion messag for epoch
+        """get valid navigation message for epoch
 
                 :param epoch: timestamp what we get valid nav message for (Epoch)
         """
@@ -70,7 +91,7 @@ class Satellite(object):
         GM = 3.986005*10**14
         omegaE = 7.2921151467*10**(-5)
 
-        ## TODO: handle the epoches on the GPS weeks borders
+        ## TODO: handle the epochs on the GPS weeks borders
         tk = epoch.getTOW - ephemerids['TOE']
 
         n0 = math.sqrt(GM/ephemerids['a']**3)#mean motion
