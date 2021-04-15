@@ -27,13 +27,13 @@ class Rotation(object):
         self.matrix = R
 
     def __mul__(self, other):
-        from pointxyz import PointXYZ
+        from point import Point
         if isinstance(other, Rotation):
             R = Rotation()
             R.setRot(np.dot(self.matrix, other.matrix))
             return R
-        elif isinstance(other, PointXYZ) :
-            return PointXYZ(other.id, np.dot(self.matrix, other.coord))
+        elif isinstance(other, Point) :
+            return Point(other.id, np.dot(self.matrix, other.xyz))
         elif isinstance(other,np.ndarray):
             ps = np.empty((0,))
             for p in other:

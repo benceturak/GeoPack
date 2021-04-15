@@ -2,8 +2,9 @@ from epoch import Epoch
 from epoch import TimeError
 import numpy as np
 import math
-from pointxyz import PointXYZ
+from point import Point
 from rotation import Rotation
+from wgs84 import WGS84
 import logging
 
 class Satellite(object):
@@ -29,13 +30,25 @@ class Satellite(object):
         """
         self.navigationDatas.append(nav)
 
-    def getElevAzimuth(self, point, epoch):
+    def getElevAzimuth(self, st, epoch):
         """get elevetion and azimuth angle from point at epoch
-            :param point: (Point)
+            :param st: (Point)
             :param epoch:
         """
-        if not isinstance(point, Point):
-            raise TypeError("other must be Point type!")
+        if not isinstance(st, Point):
+            raise TypeError("st must be Point type!")
+        if not isinstance(epoch, Epoch):
+            raise TypeError("epoch must be Epoch type!")
+
+
+        #st = Point(coord=np.array([0,6500000,0]), system=WGS84())
+        plh = st.getPLH()
+        R = Rotation()
+
+        R.setRot(np.array([[-math.sin(plh[0,0])*math.cos(plh[1,0]), -math.sin(plh[0,0])*math.sin(plh[1,0]), math.cos(plh[0,0])], [-math.sin(plh[1,0]), math.cos(plh[1,0]), 0], [math.cos(plh[0,0])*math.cos(plh[1,0]), math.cos(plh[0,0])*math.sin(plh[1,0]), math.sin(plh[0,0])]]))
+
+        topo = R * (self.getSatPos(epoch) - st)
+        return np.array([math.atan2(topo.xyz[1,0],topo.xyz[0,0]), math.atan(topo.xyz[2,0]/math.sqrt(topo.xyz[0,0]**2 + topo.xyz[1,0]**2))])
 
 
     def getEpochsInValidTimeFrame(self, timeDiff=Epoch(np.array([0,0,0,0,15,0]))):
@@ -154,7 +167,7 @@ class Satellite(object):
         ik = ephemerids['i0'] + ephemerids['idot']*tk + dik
 
         #coordinates in the satellite's orbit plane
-        coordsOrbPlane = PointXYZ(coord=np.array([rk*math.cos(uk), rk*math.sin(uk), 0]).T)
+        coordsOrbPlane = Point(coord=np.array([rk*math.cos(uk), rk*math.sin(uk), 0]).T, system=WGS84())
 
         #longitude of ascending node
         OMEGAk = ephemerids['OMEGA'] + (ephemerids['OMEGADOT'] - omegaE)*tk - omegaE*ephemerids['TOE']
