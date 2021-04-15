@@ -2,7 +2,7 @@ from epoch import Epoch
 from epoch import TimeError
 import numpy as np
 import math
-from point import Point
+from pointxyz import PointXYZ
 from rotation import Rotation
 import logging
 
@@ -24,14 +24,23 @@ class Satellite(object):
     def addNavMess(self, nav):
         """add new navigation message of epoch
 
-                :param nav: navigation message (dictionary)
+            :param nav: navigation message (dictionary)
 
         """
         self.navigationDatas.append(nav)
 
+    def getElevAzimuth(self, point, epoch):
+        """get elevetion and azimuth angle from point at epoch
+            :param point: (Point)
+            :param epoch:
+        """
+        if not isinstance(point, Point):
+            raise TypeError("other must be Point type!")
+
+
     def getEpochsInValidTimeFrame(self, timeDiff=Epoch(np.array([0,0,0,0,15,0]))):
         """method to get epochs in the given messages valid time frame
-        
+
             :param timeDiff: difference between 2 epoch (Epoch), default 15 minutes
             :return: list of epochs in the valid time frame (np.ndarray(Epoch))
         """
@@ -145,7 +154,7 @@ class Satellite(object):
         ik = ephemerids['i0'] + ephemerids['idot']*tk + dik
 
         #coordinates in the satellite's orbit plane
-        coordsOrbPlane = Point(coord=np.array([rk*math.cos(uk), rk*math.sin(uk), 0]).T)
+        coordsOrbPlane = PointXYZ(coord=np.array([rk*math.cos(uk), rk*math.sin(uk), 0]).T)
 
         #longitude of ascending node
         OMEGAk = ephemerids['OMEGA'] + (ephemerids['OMEGADOT'] - omegaE)*tk - omegaE*ephemerids['TOE']
