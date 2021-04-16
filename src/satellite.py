@@ -34,6 +34,8 @@ class Satellite(object):
         """get elevetion and azimuth angle from point at epoch
             :param st: (Point)
             :param epoch:
+
+            :return: elevation and azimuth angle in numpy vector (ndarray)
         """
         if not isinstance(st, Point):
             raise TypeError("st must be Point type!")
@@ -42,10 +44,10 @@ class Satellite(object):
 
 
         #st = Point(coord=np.array([0,6500000,0]), system=WGS84())
-        plh = st.getPLH()
+        
         R = Rotation()
 
-        R.setRot(np.array([[-math.sin(plh[0,0])*math.cos(plh[1,0]), -math.sin(plh[0,0])*math.sin(plh[1,0]), math.cos(plh[0,0])], [-math.sin(plh[1,0]), math.cos(plh[1,0]), 0], [math.cos(plh[0,0])*math.cos(plh[1,0]), math.cos(plh[0,0])*math.sin(plh[1,0]), math.sin(plh[0,0])]]))
+        R.setRot(np.array([[-math.sin(st.plh[0,0])*math.cos(st.plh[1,0]), -math.sin(st.plh[0,0])*math.sin(st.plh[1,0]), math.cos(st.plh[0,0])], [-math.sin(st.plh[1,0]), math.cos(st.plh[1,0]), 0], [math.cos(st.plh[0,0])*math.cos(st.plh[1,0]), math.cos(st.plh[0,0])*math.sin(st.plh[1,0]), math.sin(st.plh[0,0])]]))
 
         topo = R * (self.getSatPos(epoch) - st)
         return np.array([math.atan2(topo.xyz[1,0],topo.xyz[0,0]), math.atan(topo.xyz[2,0]/math.sqrt(topo.xyz[0,0]**2 + topo.xyz[1,0]**2))])

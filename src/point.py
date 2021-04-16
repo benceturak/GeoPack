@@ -20,20 +20,20 @@ class Point(object):
 
         if type == XYZ:
             if np.shape(coord) == (3, 1):
-                self.xyz = coord
+                self._xyz = coord
             elif np.shape(coord) == (1, 3):
-                self.xyz = coord.T
+                self._xyz = coord.T
             elif np.shape(coord) == (3,):
-                self.xyz = np.array([coord]).T
-            self.plh = None
+                self._xyz = np.array([coord]).T
+            self._plh = None
         elif type == PLH:
-            self.xyz = None
+            self._xyz = None
             if np.shape(coord) == (3, 1):
-                self.plh = coord
+                self._plh = coord
             elif np.shape(coord) == (1, 3):
-                self.plh = coord.T
+                self._plh = coord.T
             elif np.shape(coord) == (3,):
-                self.plh = np.array([coord]).T
+                self._plh = np.array([coord]).T
 
         else:
             raise TypeError()
@@ -41,20 +41,41 @@ class Point(object):
 
         self.system = system
     def getXYZ(self):
-        if np.shape(self.xyz) != (3, 1):
+        if np.shape(self._xyz) != (3, 1):
             if self.system != None:
-                self.xyz = self.system.getXYZ(self.plh)
+                self._xyz = self.system.getXYZ(self._plh)
             else:
                 raise TypeError("must be set up system to calculate the XYZ coords!")
-        return self.xyz
+        return self._xyz
 
     def getPLH(self):
-        if np.shape(self.plh) != (3, 1):
+        if np.shape(self._plh) != (3, 1):
+
             if self.system != None:
-                self.plh = self.system.getPLH(self.xyz)
+                self._plh = self.system.getPLH(self._xyz)
             else:
                 raise TypeError("must be set up system to calculate the phi, lambda, h coords!")
-        return self.plh
+        return self._plh
+
+    @property
+    def xyz(self):
+        if np.shape(self._xyz) == (3, 1):
+            return self._xyz
+        else:
+            return self.getXYZ()
+    @xyz.setter
+    def xyz(self, c):
+        self._xyz = c
+    @property
+    def plh(self):
+        if np.shape(self._plh) == (3, 1):
+            return self._plh
+        else:
+            return self.getPLH()
+    @plh.setter
+    def plh(self, c):
+        self._plh = c
+
 
     def __add__(self, other):
         if not isinstance(other, Point):

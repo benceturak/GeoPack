@@ -20,11 +20,11 @@ class Ellipsoid(object):
     def getXYZ(self, plh):
         #from point import Point
         #M = self.a*(1-self.e**2)/(1 - self.e**2*math.sin(plh.phi))**(3/2)
-        N = self.a/(1 - self.e**2*math.sin(plh[0,0]))**(1/2)
+        N = self.a/math.sqrt(1 - self.e**2*math.sin(plh[0,0])**2)
 
         x = (N + plh[2,0])*math.cos(plh[0,0])*math.cos(plh[1,0])
         y = (N + plh[2,0])*math.cos(plh[0,0])*math.sin(plh[1,0])
-        z = (N*(1-e**2) + plh[2,0])*math.sin(plh[0,0])
+        z = (N*(1-self.e**2) + plh[2,0])*math.sin(plh[0,0])
 
         return np.array([[x], [y], [z]])
 
