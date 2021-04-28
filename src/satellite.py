@@ -5,7 +5,10 @@ import math
 from point import Point
 from rotation import Rotation
 from wgs84 import WGS84
+import scipy.constants
 import logging
+
+
 
 class Satellite(object):
     """
@@ -14,6 +17,14 @@ class Satellite(object):
             :param prn: satellite PRN
             :param nav: navigation message (dictionary)
     """
+    def __new__(self, prn='', nav={}):
+        if prn[0] == 'G':
+            return GPSSat(prn, nav)
+        elif prn[0] == 'E':
+            return self
+        elif prn[0] == 'R':
+            return self
+
     def __init__(self, prn='', nav={}):
         """Satellite constructor
 
@@ -44,13 +55,13 @@ class Satellite(object):
 
 
         #st = Point(coord=np.array([0,6500000,0]), system=WGS84())
-        
+
         R = Rotation()
 
         R.setRot(np.array([[-math.sin(st.plh[0,0])*math.cos(st.plh[1,0]), -math.sin(st.plh[0,0])*math.sin(st.plh[1,0]), math.cos(st.plh[0,0])], [-math.sin(st.plh[1,0]), math.cos(st.plh[1,0]), 0], [math.cos(st.plh[0,0])*math.cos(st.plh[1,0]), math.cos(st.plh[0,0])*math.sin(st.plh[1,0]), math.sin(st.plh[0,0])]]))
 
         topo = R * (self.getSatPos(epoch) - st)
-        return np.array([math.atan2(topo.xyz[1,0],topo.xyz[0,0]), math.atan(topo.xyz[2,0]/math.sqrt(topo.xyz[0,0]**2 + topo.xyz[1,0]**2))])
+        return np.array([math.atan(topo.xyz[2,0]/math.sqrt(topo.xyz[0,0]**2 + topo.xyz[1,0]**2)), math.atan2(topo.xyz[1,0],topo.xyz[0,0])])
 
 
     def getEpochsInValidTimeFrame(self, timeDiff=Epoch(np.array([0,0,0,0,15,0]))):
@@ -179,3 +190,30 @@ class Satellite(object):
         R = Rotation(x=ik, z=OMEGAk, orther="zxy")
 
         return R*coordsOrbPlane
+
+class GPSSat(Satellite):
+    f1 = 1575.42*10**6#Hz
+    f2 = 1227.60*10**6#Hz
+    f5 = 1176.45*10**6#Hz
+
+    def __new__(self, prn='', nav={}):
+        return object.__new__(self)
+    @property
+    def l1(self):
+        return scipy.constants.c/self.f1
+    @property
+    def l2(self):
+        return scipy.constants.c/self.f2
+    @property
+    def l5(self):
+        return scipy.constants.c/self.f5
+
+    @property
+    def T1(self):
+        return 1/self.f1
+    @property
+    def T2(self):
+        return 1/self.f2
+    @property
+    def T5(self):
+        return 1/self.f5
