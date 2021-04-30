@@ -277,18 +277,72 @@ class RNXReader(object):
     def ENDOFHEADER(self, line):
         pass
 
-    def getObservations(self, sat, obsType, opt=0):
+    def getObservations(self, sats, obsTypes = None, minTime=None, maxTime=None, opt=0):
         """get observation by satellite PRN and observation type
 
-                :sat: PRN 3-digits system-char [GPS: G,GLONASS: R, Galileo: E (RINEX standards)] and PRN extended with 0 if necessary(string)
-                :obsType: observation type, marked as in RINEX standard (string)
+                :sat: list of PRN 3-digits system-char [GPS: G,GLONASS: R, Galileo: E (RINEX standards)] and PRN extended with 0 if necessary (tuple)
+                :obsType: list of observation type, marked as in RINEX standard (tuple), if None list all observed types, default None
+                :minTime: start epoch of time frame (Epoch), if None there is no start of frame, default None
+                :maxTime: end epoch of time frame (Epoch), if None there is no end of frame, default None
                 :opt: observation optionally can be extended obs informations [LLI, signal strenth] (int 0 or 1), default:0
 
         """
-        #key of observation type
-        key = self.observationTypes.index(obsType)
 
-        return np.append(self.observations[sat][:,0:1], self.observations[sat][:,1+key*3:1+key*3+1+2*opt], axis=1)
+        if obsTypes is None:
+            obsTypes = self.observationTypes
+        observations = {}
+
+        if opt > 1:
+            opt = 1
+        elif opt < 0:
+            opt = 0
+        ot = ()
+        for t in obsTypes:
+            try:
+                self.observationTypes.index(t)
+                ot = ot + (t,)
+            except ValueError:
+                logging.warning('There are no '+ t +' observations')
+                continue
+        obsTypes = ot
+        for s in sats:
+
+            try:
+                satObs = self.observations[s]
+
+
+
+            except KeyError:
+                logging.warning('There are no observations for PRN ' + s)
+                continue
+            observations[s] = np.empty((0,1+len(obsTypes)*(1 + opt*2)))
+            for o in satObs:
+                obsEpoch = o[0]
+
+                if minTime is not None and maxTime is not None:
+                    if obsEpoch < minTime or maxTime < obsEpoch:
+                        continue
+                elif minTime is None and maxTime is not None:
+                    if maxTime < obsEpoch:
+                        continue
+                elif minTime is not None and maxTime is None:
+                    if obsEpoch < minTime:
+                        continue
+                for t in obsTypes:
+
+                    key = self.observationTypes.index(t)
+
+                    obsEpoch = np.append(obsEpoch, o[1+key*3:1+key*3+1+2*opt])
+                observations[s] = np.append(observations[s], [obsEpoch], axis=0)
+
+
+
+
+
+        #key of observation type
+
+
+        return observations#np.append(self.observations[sat][:,0:1], self.observations[sat][:,1+key*3:1+key*3+1+2*opt], axis=1)
 
 
 

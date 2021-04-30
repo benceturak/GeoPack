@@ -8,7 +8,7 @@ from wgs84 import WGS84
 import scipy.constants
 import logging
 
-
+class SatError(Exception):pass
 
 class Satellite(object):
     """
@@ -21,9 +21,9 @@ class Satellite(object):
         if prn[0] == 'G':
             return GPSSat(prn, nav)
         elif prn[0] == 'E':
-            return self
+            return GalileoSat(prn, nav)
         elif prn[0] == 'R':
-            return self
+            return GLONASSSat(prn, nav)
 
     def __init__(self, prn='', nav={}):
         """Satellite constructor
@@ -32,6 +32,23 @@ class Satellite(object):
         self.system = prn[0]
         self.prn = (prn)
         self.navigationDatas = []
+
+    def getTimeFrameByElevAzimuthMask(self, elevation, azimuth, st):
+        epochs = self.getEpochsInValidTimeFrame(Epoch(np.array([0,0,0,0,0,1.0])))
+        start = epochs[0]
+        end = epochs[-1]
+
+
+
+        return np.array([start, end])
+
+
+
+
+
+
+
+
 
     def addNavMess(self, nav):
         """add new navigation message of epoch
@@ -72,8 +89,8 @@ class Satellite(object):
         """
 
         #initalize vars
-        epochs = np.empty((1,0))
-        ends = np.empty((1,0))
+        epochs = np.empty((0,))
+        ends = np.empty((0,))
 
 
         #check navigation datas message by message
@@ -84,7 +101,7 @@ class Satellite(object):
             end = nav['epoch'] + Epoch(np.array([0,0,0,1,0,0]))
 
             #store all end of frame for check the duplicate epochs on borders
-            ends = np.append(ends, [[end]])
+            ends = np.append(ends, end)
 
             ep = begin
             #check borders
@@ -95,12 +112,12 @@ class Satellite(object):
             #store every epoch with timeDiff differences while reaches the end
             while ep < end:
 
-                epochs = np.append(epochs,  [[ep]], axis=1)
+                epochs = np.append(epochs,  [ep])
                 ep += timeDiff
             #if last ep greater then end
             if ep > end:
                 #append end of frame to the list
-                epochs = np.append(epochs,  [[end]], axis=1)
+                epochs = np.append(epochs,  [end])
         return epochs
 
 
@@ -133,7 +150,17 @@ class Satellite(object):
         elif self.system == 'R':pass#GLONASS satellite
         elif self.system == 'E':pass#Galileo satellite
 
-    def _getGPSSatPos(self, epoch):
+
+
+class GPSSat(Satellite):
+    f1 = 1575.42*10**6#Hz
+    f2 = 1227.60*10**6#Hz
+    f5 = 1176.45*10**6#Hz
+
+    def __new__(self, prn='', nav={}):
+        return object.__new__(self)
+
+    def getSatPos(self, epoch):
         """get satellite position in case of GPS satellite
 
                 :param epoch: timestamp when we get the position of satellite (Epoch)
@@ -190,14 +217,6 @@ class Satellite(object):
         R = Rotation(x=ik, z=OMEGAk, orther="zxy")
 
         return R*coordsOrbPlane
-
-class GPSSat(Satellite):
-    f1 = 1575.42*10**6#Hz
-    f2 = 1227.60*10**6#Hz
-    f5 = 1176.45*10**6#Hz
-
-    def __new__(self, prn='', nav={}):
-        return object.__new__(self)
     @property
     def l1(self):
         return scipy.constants.c/self.f1
@@ -217,3 +236,6 @@ class GPSSat(Satellite):
     @property
     def T5(self):
         return 1/self.f5
+
+class GLONASSSat(Satellite):pass
+class GalileoSat(Satellite):pass

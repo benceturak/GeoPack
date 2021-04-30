@@ -49,11 +49,15 @@ residuals = SNR[:,0] - trend
 
 periodogram = signal.lombscargle(sine, residuals, f)
 
+maxi = np.argmax(periodogram)
+
 fig, axs = plt.subplots(2, 1)
 axs[0].plot(sine, SNR[:,0], '-', sine, trend, '--')
 axs[0].set(xlabel="sin(e) [-]", ylabel='SNR [volts/volts]', title='SNR values G25')
 
-axs[1].plot(f*s.l1/(4*math.pi), periodogram)
+
+
+axs[1].plot(f*s.l1/(4*math.pi), periodogram, '-', f[maxi]*s.l1/(4*math.pi), periodogram[maxi], 'o')
 axs[1].set(xlabel="f", ylabel='aaaa', title='Periodogram values G25')
 
 
