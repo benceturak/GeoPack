@@ -49,3 +49,11 @@ class Ellipsoid(object):
 
 
         return np.array([[P], [L], [h]])
+
+class WGS84(Ellipsoid):
+    a = 6378137.000#meter
+    b = 6356752.314#meter
+
+class IUGG67(Ellipsoid):
+    a = 6378160.000#meter
+    b = 6356774.516#meter

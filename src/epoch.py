@@ -1,6 +1,13 @@
 import numpy as np
 import datetime
 import math
+import wget
+import urllib
+import os
+import logging
+
+GPS = 1
+UTC = 2
 
 class TimeError(Exception):pass
 
@@ -9,17 +16,24 @@ class Epoch(object):
         Epoch class to contain datetime and perform operations
 
             :param dt: datetime in vector [year, month, day, hour, minute, second](NumPy array)
+            :param system: time system GPS, UTC (int), default GPS
     """
 
-    def __init__(self, dt, system="GPS"):
+    def __init__(self, dt, system=GPS):
         """Epoch constructor
 
         """
 
-        self.dt = dt
+        if system == GPS:
+            self.dt = dt
+        elif system == UTC:
+            self.dt = dt
+            ls = LeapSecs().getLeapSecsAt(self)
+            #print(self + ls)
+            self.dt = (self + ls).dt
 
     @property
-    def getDateTime(self, system="GPS"):
+    def getDateTime(self, system=GPS):
         """get DateTime time
 
         """
@@ -162,17 +176,78 @@ class Epoch(object):
     def __repr__(self):
         return '[{0:d}, {1:d}, {2:d}, {3:d}, {4:d}, {5:.5f}]'.format(int(self.dt[0]), int(self.dt[1]), int(self.dt[2]), int(self.dt[3]), int(self.dt[4]), self.dt[5])
 
+class LeapSecs(object):
+    """
+        LeapSecs class to handle leap seconds
+            :param fileName: (string), default Leap_second.dat
+            :param url: url of leapsec file (string), default https://hpiers.obspm.fr/iers/bul/bulc/Leap_Second.dat (IERS bulletin C)
+            :param download: download the leapsec file? (boolean), default False
+    """
+
+    def __init__(self, fileName = 'Leap_Second.dat', url='https://hpiers.obspm.fr/iers/bul/bulc/Leap_Second.dat', download=False):
+        """LeapSecs construcor
+
+        """
+        self.fileName = fileName
+        self.leapSecs = np.empty((0,3))
+
+        try:
+            if download:#download leap seconds file if necessary
+                if os.path.exists(fileName):
+                    os.remove(fileName)
+                wget.download(url, fileName)
+                print()
+            self.fid = open(self.fileName, 'r')
+
+            self._read()
+        except urllib.error.HTTPError:
+            logging.error("Leapsec file connet be downloaded!")
+        finally:
+            self.fid.close()
+
+    def _read(self):
+        """read leapsec file
+
+        """
+
+        #read leeapsec file row by row
+        while True:
+            line = self.fid.readline()
+            if line[0:1] == "#":#header rows
+                pass#print(line)
+            elif line[0:1] == " ":#content
+                self.leapSecs = np.append(self.leapSecs, [[float(line[0:13].strip()), Epoch(np.array([int(line[19:24].strip()), int(line[16:19].strip()), int(line[13-16].strip()),0,0,0])), int(line[24:33].strip())]], axis=0)
+            else:
+                break
+
+    def getLeapSecsAt(self, epoch, fr=GPS):
+        for i in self.leapSecs:
+            if i[1] <= epoch:
+                ls = i[2]
+            else:
+                break
+
+        return Epoch(np.array([0,0,0,0,0,ls-19]))
+
 
 if __name__ == "__main__":
 
-    a = Epoch(np.array([2021,4,18,15,0,0]))
+    #print(ls.leapSecs)
+
+    a = Epoch(np.array([2021,4,18,15,0,0]), system=GPS)
     b = Epoch(np.array([0,8,27,7,0,60]))
-    c = Epoch(np.array([2019,4,2,8,0,0]))
+    c = Epoch(np.array([1998,4,18,15,0,0]), system=UTC)
+    #print(c.dt)
+    ls = LeapSecs()
+    print(ls.getLeapSecsAt(c))
+
+    print(a)
+    print(c)
 
     #print(a + b)
-    print(a+b)
-    print(c<a)
+    #print(a+b)
+    #print(c<a)
 
-    print(a.getGPSweek)
-    print(a.getTOW)
-    print(a.getDOW)
+    #print(a.getGPSweek)
+    #print(a.getTOW)
+    #print(a.getDOW)

@@ -24,11 +24,11 @@ s = sats.getSatellite('G25')
 
 
 #s.getEpochsInValidTimeFrame(Epoch(np.array([0,0,0,0,0,1.0])))
-SNR17 = obs.getObservations('G25', 'S1')
+SNR17 = obs.getObservations(sats=('G25',), obsTypes=('S1',))
 
 SNR = np.empty((0,2))
 
-for i in SNR17:
+for i in SNR17['G25']:
 
     try:
         elevAz = s.getElevAzimuth(Point(coord = obs.approxPosition, system=WGS84()), i[0])
