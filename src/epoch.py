@@ -45,7 +45,7 @@ class Epoch(object):
         """get GPS week
             :return: DOW (int)
         """
-        return int((math.floor(math.floor(self.getMJD()) - Epoch(np.array([1980,1,6,0,0,0])).getMJD()))/7)
+        return int((math.floor(math.floor(self.MJD) - Epoch(np.array([1980,1,6,0,0,0])).MJD))/7)
 
 
     @property
@@ -53,14 +53,14 @@ class Epoch(object):
         """get seconds on the GPS week
             :return: TOW(float)
         """
-        return self.getDOW*86400 + self.dt[3]*3600 + self.dt[4]*60 + self.dt[5]
+        return self.DOW*86400 + self.dt[3]*3600 + self.dt[4]*60 + self.dt[5]
 
     @property
     def DOW(self):
         """get day of GPS week
             :return: DOW (int)
         """
-        return int((math.floor(math.floor(self.getMJD()) - Epoch(np.array([1980,1,6,0,0,0])).getMJD()))%7)
+        return int((math.floor(math.floor(self.MJD) - Epoch(np.array([1980,1,6,0,0,0])).MJD))%7)
 
 
     @property

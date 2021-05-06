@@ -173,7 +173,7 @@ class GPSSat(Satellite):
         omegaE = 7.2921151467*10**(-5)
 
         ## TODO: handle the epochs on the GPS weeks borders
-        tk = epoch.getTOW - ephemerids['TOE']
+        tk = epoch.TOW - ephemerids['TOE']
 
         n0 = math.sqrt(GM/ephemerids['a']**3)#mean motion
         n = n0 + ephemerids['deltan']#mean motion difference
@@ -207,7 +207,7 @@ class GPSSat(Satellite):
         ik = ephemerids['i0'] + ephemerids['idot']*tk + dik
 
         #coordinates in the satellite's orbit plane
-        coordsOrbPlane = Point(coord=np.array([rk*math.cos(uk), rk*math.sin(uk), 0]).T, system=WGS84())
+        coordsOrbPlane = Point(coord=np.array([rk*math.cos(uk), rk*math.sin(uk), 0]).T, system=ellipsoid.WGS84())
 
         #longitude of ascending node
         OMEGAk = ephemerids['OMEGA'] + (ephemerids['OMEGADOT'] - omegaE)*tk - omegaE*ephemerids['TOE']

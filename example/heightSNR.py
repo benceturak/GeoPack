@@ -7,12 +7,12 @@ from epoch import Epoch
 from epoch import TimeError
 import numpy as np
 import math
-from wgs84 import WGS84
 from point import Point
 import matplotlib
 import matplotlib.pyplot as plt
 import scipy.signal as signal
 from lsfrequency import lsfrequency
+import ellipsoid
 
 
 obs = RNXReader('../data/118/mini.19o')
@@ -31,7 +31,7 @@ SNR = np.empty((0,2))
 for i in SNR17['G25']:
 
     try:
-        elevAz = s.getElevAzimuth(Point(coord = obs.approxPosition, system=WGS84()), i[0])
+        elevAz = s.getElevAzimuth(Point(coord = obs.approxPosition, system=ellipsoid.WGS84()), i[0])
         a = np.append(i[1], elevAz[0])
         SNR = np.append(SNR, [a], axis=0)
     except TimeError:
