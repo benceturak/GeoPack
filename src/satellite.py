@@ -4,7 +4,7 @@ import numpy as np
 import math
 from point import Point
 from rotation import Rotation
-from wgs84 import WGS84
+import ellipsoid
 import scipy.constants
 import logging
 
@@ -237,5 +237,55 @@ class GPSSat(Satellite):
     def T5(self):
         return 1/self.f5
 
-class GLONASSSat(Satellite):pass
+class GLONASSSat(Satellite):
+    def __new__(self, prn='', nav={}):
+        return object.__new__(self)
+
+    def getSatPos(self, epoch):
+        """get satellite position in case of GLONASS satellite
+
+                :param epoch: timestamp when we get the position of satellite (Epoch)
+                :returns: position of satellite at given epoch (Point)
+        """
+        aE = 6378136#m
+        omegaE = 0.7292115*10^-4#rad/s
+        mu=398600.44
+        theta
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 class GalileoSat(Satellite):pass

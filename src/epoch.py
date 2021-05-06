@@ -41,7 +41,7 @@ class Epoch(object):
 
 
     @property
-    def getGPSweek(self):
+    def GPSweek(self):
         """get GPS week
             :return: DOW (int)
         """
@@ -49,21 +49,31 @@ class Epoch(object):
 
 
     @property
-    def getTOW(self):
+    def TOW(self):
         """get seconds on the GPS week
             :return: TOW(float)
         """
         return self.getDOW*86400 + self.dt[3]*3600 + self.dt[4]*60 + self.dt[5]
 
     @property
-    def getDOW(self):
+    def DOW(self):
         """get day of GPS week
             :return: DOW (int)
         """
         return int((math.floor(math.floor(self.getMJD()) - Epoch(np.array([1980,1,6,0,0,0])).getMJD()))%7)
 
 
-    def getMJD(self):
+    @property
+    def UTC(self):
+        ls = LeapSecs().getLeapSecsAt(self)
+        return (self - ls).dt
+    @property
+    def SU(self):
+
+        return (self + Epoch(np.array([0,0,0,3,0,0.0]))).UTC
+
+    @property
+    def MJD(self):
         """get Modified Julian Date
             :return: MJD (float)
         """
@@ -233,16 +243,16 @@ class LeapSecs(object):
 if __name__ == "__main__":
 
     #print(ls.leapSecs)
-
-    a = Epoch(np.array([2021,4,18,15,0,0]), system=GPS)
+    a = Epoch(np.array([2021,4,18,23,0,0]), system=GPS)
     b = Epoch(np.array([0,8,27,7,0,60]))
     c = Epoch(np.array([1998,4,18,15,0,0]), system=UTC)
     #print(c.dt)
     ls = LeapSecs()
-    print(ls.getLeapSecsAt(c))
+    #print(ls.getLeapSecsAt(c))
 
-    print(a)
-    print(c)
+    print(a.dt)
+    print(a.UTC)
+    print(a.SU)
 
     #print(a + b)
     #print(a+b)

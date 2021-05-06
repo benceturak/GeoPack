@@ -1,6 +1,5 @@
 import numpy as np
-from wgs84 import WGS84
-from ellipsoid import Ellipsoid
+import ellipsoid
 XYZ = 1
 PLH = 2
 class Point(object):
@@ -13,7 +12,7 @@ class Point(object):
             raise TypeError("coord must be 3x1 numpy matrix!")
         if not isinstance(type, int):
             raise TypeError("type must be integer!")
-        if not isinstance(system, Ellipsoid) and system != None:
+        if not isinstance(system, ellipsoid.Ellipsoid) and system != None:
             raise TypeError("system must Ellipoid or None type!")
 
         self.id = id
