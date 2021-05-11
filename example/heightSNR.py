@@ -20,21 +20,28 @@ import ellipsoid
 obs = RNXReader('../data/118/mini.19o')
 obs.readObservations();
 
-sats = GPSNavReader('../data/118/brdc118_v2.19N')
+navs = GPSNavReader('../data/118/brdc118_v2.19N')
 
 
 
 
 #s.getEpochsInValidTimeFrame(Epoch(np.array([0,0,0,0,0,1.0])))
-observations = obs.getObservations(sats=('G25','G26','G27'), obsTypes=('S1','S2'))
+obsTypes = ('S1','S2')
+sats = ('G1', 'G2', 'G3', 'G4', 'G5', 'G6', 'G7', 'G8', 'G9', 'G10',
+        'G11', 'G12', 'G13', 'G14', 'G15', 'G16', 'G17', 'G18', 'G19',
+        'G21', 'G22', 'G23', 'G24', 'G25', 'G26', 'G27', 'G28', 'G29',
+        'G31', 'G32')
+observations = obs.getObservations(sats=sats, obsTypes=obsTypes)
 
 
-elevAzMask = np.array([[0, 25],[170, 180]])*np.pi/180
+elevAzMask = np.array([[0, 25],[140, 160]])*np.pi/180
 
+SNR = {}
 for prn in observations:
-    SNR = np.empty((0,3))
-
-    s = sats.getSatellite(prn)
+    for t in range(len(obsTypes)):
+        SNR[obsTypes[t]] = np.empty((0,2))
+        SNR[obsTypes[t]] = np.empty((0,2))
+    s = navs.getSatellite(prn)
 
 
     for i in observations[prn]:
@@ -42,53 +49,76 @@ for prn in observations:
 
         try:
             elevAz = s.getElevAzimuth(Point(coord = obs.approxPosition, system=ellipsoid.WGS84()), i[0])
-            a = np.append(elevAz[0], i[1])
-            a = np.append(a, i[2])
-            SNR = np.append(SNR, [a], axis=0)
-
+            #print(elevAz[1]*180/np.pi)
+            if elevAzMask[0,0] <= elevAz[0] <= elevAzMask[0,1] and elevAzMask[1,0] <= elevAz[1] <= elevAzMask[1,1]:
+                for t in range(len(obsTypes)):
+                    a = np.append(elevAz[0], i[t+1])
+                    if i[t+1] != 0:
+                        SNR[obsTypes[t]] = np.append(SNR[obsTypes[t]], [a], axis=0)
+            #if i[1] == 0 or i[2] == 0:
+            #    print(a)
             #
         except TimeError:
             print(i[0])
-    print(np.shape(SNR))
+    #print(np.shape(SNR))
+    #
 
 
-    sine = np.sin(SNR[:,0])
-    #print(sine)
-    SNR[:,1] = 10**(SNR[:,1]/20)
-    SNR[:,2] = 10**(SNR[:,2]/20)
+    sine = {}
+    f = {}
+    p = {}
+    trend = {}
+    residuals = {}
+    periodogram = {}
+    maxi = {}
+    show = False
+    for t in range(len(obsTypes)):
+        if np.shape(SNR[obsTypes[t]]) == (0,2):
+            continue
+        show = True
+    if show:
+        fig, axs = plt.subplots(2, len(obsTypes))
 
-    f1 = lsfrequency(s.l1, 5, 30, 0.01)
+    for t in range(len(obsTypes)):
+        if np.shape(SNR[obsTypes[t]]) == (0,2):
+            continue
+        show = True
+        sine[obsTypes[t]] = np.sin(SNR[obsTypes[t]][:,0])
+        #print(sine)
+        SNR[obsTypes[t]][:,1] = 10**(SNR[obsTypes[t]][:,1]/20)
 
-    p1 = np.poly1d(np.polyfit(sine, SNR[:,1], 2))
-    trend1 = p1(sine)
-    residuals1 = SNR[:,1] - trend1
-    periodogram1 = signal.lombscargle(sine, residuals1, f1)
-    maxi1 = np.argmax(periodogram1)
+        l = eval("s.l"+obsTypes[t][1])
 
-    f2 = lsfrequency(s.l2, 5, 30, 0.01)
-    p2 = np.poly1d(np.polyfit(sine, SNR[:,2], 2))
-    trend2 = p2(sine)
-    residuals2 = SNR[:,2] - trend2
-    periodogram2 = signal.lombscargle(sine, residuals2, f2)
-    maxi2 = np.argmax(periodogram2)
+        f[obsTypes[t]] = lsfrequency(l, 5, 30, 0.01)
 
-
-    fig, axs = plt.subplots(2, 2)
-    axs[0,0].plot(sine, SNR[:,1], '-', sine, trend1, '--')
-    axs[0,0].set(xlabel="sin(e) [-]", ylabel='SNR [volts/volts]', title='SNR values G25')
-
-
-
-    axs[1,0].plot(f1*s.l1/(4*math.pi), periodogram1, '-', f1[maxi1]*s.l1/(4*math.pi), periodogram1[maxi1], 'o')
-    axs[1,0].set(xlabel="f", ylabel='aaaa', title='Periodogram values G25')
-
-    axs[0,1].plot(sine, SNR[:,2], '-', sine, trend2, '--')
-    axs[0,1].set(xlabel="sin(e) [-]", ylabel='SNR [volts/volts]', title='SNR values G25')
-
-
-
-    axs[1,1].plot(f2*s.l2/(4*math.pi), periodogram2, '-', f2[maxi2]*s.l2/(4*math.pi), periodogram2[maxi2], 'o')
-    axs[1,1].set(xlabel="f", ylabel='aaaa', title='Periodogram values G25')
+        p[obsTypes[t]] = np.poly1d(np.polyfit(sine[obsTypes[t]], SNR[obsTypes[t]][:,1], 2))
+        trend[obsTypes[t]] = p[obsTypes[t]](sine[obsTypes[t]])
+        residuals[obsTypes[t]] = SNR[obsTypes[t]][:,1] - trend[obsTypes[t]]
+        periodogram[obsTypes[t]] = signal.lombscargle(sine[obsTypes[t]], residuals[obsTypes[t]], f[obsTypes[t]])
+        maxi[obsTypes[t]] = np.argmax(periodogram[obsTypes[t]])
 
 
-    plt.show()
+
+
+
+        axs[0,t].plot(sine[obsTypes[t]], SNR[obsTypes[t]][:,1], '-', sine[obsTypes[t]], trend[obsTypes[t]], '--')
+        axs[0,t].set(xlabel="sin(e) [-]", ylabel='SNR [volts/volts]', title='SNR values ' + obsTypes[t])
+
+
+
+        #h
+
+
+        axs[1,t].plot(f[obsTypes[t]]*l/(4*math.pi), periodogram[obsTypes[t]], '-', f[obsTypes[t]][maxi[obsTypes[t]]]*l/(4*math.pi), periodogram[obsTypes[t]][maxi[obsTypes[t]]], 'o')
+        axs[1,t].set(xlabel="f", ylabel='aaaa', title='Periodogram values G25')
+
+        #axs[0,t].plot(sine2, SNR2[:,1], '-', sine2, trend2, '--')
+        #axs[0,t].set(xlabel="sin(e) [-]", ylabel='SNR [volts/volts]', title='SNR values G25')
+
+
+
+        #axs[1,t].plot(f2*s.l2/(4*math.pi), periodogram2, '-', f2[maxi2]*s.l2/(4*math.pi), periodogram2[maxi2], 'o')
+        #axs[1,t].set(xlabel="f", ylabel='aaaa', title='Periodogram values G25')
+
+    if show:
+        plt.show()
