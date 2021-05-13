@@ -6,6 +6,7 @@ from point import Point
 from rotation import Rotation
 import ellipsoid
 import scipy.constants
+import scipy.integrate
 import logging
 
 class SatError(Exception):pass
@@ -121,22 +122,7 @@ class Satellite(object):
         return epochs
 
 
-    def getValidEph(self, epoch):
-        """get valid navigation message for epoch
 
-                :param epoch: timestamp what we get valid nav message for (Epoch)
-        """
-        #valid time frame from epoch
-        min = epoch - Epoch(np.array([0, 0, 0, 1, 0, 0]))
-        max = epoch + Epoch(np.array([0, 0, 0, 1, 0, 0]))
-
-
-        for nav in self.navigationDatas:#check all navigation message epoch
-            if min <= nav['epoch'] and nav['epoch'] <= max:#if navigation message is in the time frame
-
-                return nav
-                break#break loop when valid epoch is finded
-        raise TimeError("Epoch out of time frame!")
 
 
     def getSatPos(self, epoch):
@@ -159,6 +145,23 @@ class GPSSat(Satellite):
 
     def __new__(self, prn='', nav={}):
         return object.__new__(self)
+
+    def getValidEph(self, epoch):
+        """get valid navigation message for epoch
+
+                :param epoch: timestamp what we get valid nav message for (Epoch)
+        """
+        #valid time frame from epoch
+        min = epoch - Epoch(np.array([0, 0, 0, 1, 0, 0]))
+        max = epoch + Epoch(np.array([0, 0, 0, 1, 0, 0]))
+
+
+        for nav in self.navigationDatas:#check all navigation message epoch
+            if min <= nav['epoch'] and nav['epoch'] <= max:#if navigation message is in the time frame
+
+                return nav
+                break#break loop when valid epoch is finded
+        raise TimeError("Epoch out of time frame!")
 
     def getSatPos(self, epoch):
         """get satellite position in case of GPS satellite
@@ -241,6 +244,23 @@ class GLONASSSat(Satellite):
     def __new__(self, prn='', nav={}):
         return object.__new__(self)
 
+    def getValidEph(self, epoch):
+        """get valid navigation message for epoch
+
+                :param epoch: timestamp what we get valid nav message for (Epoch)
+        """
+        #valid time frame from epoch
+        min = epoch - Epoch(np.array([0, 0, 0, 0, 15, 0]))
+        max = epoch + Epoch(np.array([0, 0, 0, 0, 15, 0]))
+
+
+        for nav in self.navigationDatas:#check all navigation message epoch
+            if min <= nav['epoch'] and nav['epoch'] <= max:#if navigation message is in the time frame
+
+                return nav
+                break#break loop when valid epoch is finded
+        raise TimeError("Epoch out of time frame!")
+
     def getSatPos(self, epoch):
         """get satellite position in case of GLONASS satellite
 
@@ -249,8 +269,19 @@ class GLONASSSat(Satellite):
         """
         aE = 6378136#m
         omegaE = 0.7292115*10^-4#rad/s
-        mu=398600.44
-        theta
+        mu = 39860044*10^14#m^3/s^2
+        C20 = -1.08263*10^-3
+
+
+        r = lambda x,y,z: math.sqrt(x^2 + y^2 + z^2)
+
+        dxdt = lambda vx: vx
+        dydt = lambda vy: vy
+        dzdt = lambda vz: vz
+
+        dxdt2 = lambda x, z, ax, vy: -mu/r(x, y, z)^3*x + 3/2*C20*mu*aE^2/r(x, y, z)^5*x*(1-5*z^2/r(x, y, z)^2) + ax + omegaE^2*x + 2*omegaE*vy
+        dydt2 = lambda y, z, ay, vx: -mu/r(x, y, z)^3*y + 3/2*C20*mu*aE^2/r(x, y, z)^5*y*(1-5*z^2/r(x, y, z)^2) + ay + omegaE^2*y + 2*omegaE*vx
+        dzdt2 = lambda z: -mu/r(x, y, z)^3*z + 3/2*C20*mu*aE^2/r(x, y, z)^5*z*(1-5*z^2/r(x, y, z)^2 )
 
 
 
