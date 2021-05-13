@@ -283,6 +283,8 @@ class GLONASSSat(Satellite):
         dydt2 = lambda y, z, ay, vx: -mu/r(x, y, z)^3*y + 3/2*C20*mu*aE^2/r(x, y, z)^5*y*(1-5*z^2/r(x, y, z)^2) + ay + omegaE^2*y + 2*omegaE*vx
         dzdt2 = lambda z: -mu/r(x, y, z)^3*z + 3/2*C20*mu*aE^2/r(x, y, z)^5*z*(1-5*z^2/r(x, y, z)^2 )
 
+        scipy.integrate.RK45()
+
 
 
 
