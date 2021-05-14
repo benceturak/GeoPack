@@ -37,15 +37,19 @@ class GLONASSNavReader(object):
         for i in self.navigationDatas[prn]:
             nav = {}
             nav['epoch'] = i[0]
+            try:
+                nav['tauC'] = self.tauC
+            except AttributeError:
+                nav['tauC'] = Epoch(np.array([0,0,0,0,0,0]))
 
-            nav['a0'] = i[1]
-            nav['a1'] = i[2]
-            nav['a2'] = i[3]
+            nav['tauN'] = i[1]
+            nav['gammaN'] = i[2]
+            nav['tk'] = i[3]
 
             nav['x0'] = i[4]*1000
             nav['dxdt'] = i[5]*1000
             nav['dxdt2'] = i[6]*1000
-            nav['SVhealth'] = i[7]
+            nav['health'] = i[7]
 
             nav['y0'] = i[8]*1000
             nav['dydt'] = i[9]*1000
@@ -161,7 +165,9 @@ class GLONASSNavReader(object):
         self.comments.append(line[0:60].strip())
 
     def CORRTOSYSTEMTIME(self,line):
-        pass
+
+        self.reference = Epoch(np.array([int(line[0:6].strip()), int(line[6:12].strip()), int(line[12:18].strip()), 0, 0, 0]))
+        self.tauC = Epoch(np.array([0, 0, 0, 0, 0, float(line[21:40].strip())]))
 
 
     def ENDOFHEADER(self,line):

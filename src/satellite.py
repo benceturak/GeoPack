@@ -6,7 +6,8 @@ from point import Point
 from rotation import Rotation
 import ellipsoid
 import scipy.constants
-import scipy.integrate
+from scipy.integrate import solve_ivp
+from glonassorbitdiffeq import diffeq
 import logging
 
 class SatError(Exception):pass
@@ -244,6 +245,10 @@ class GLONASSSat(Satellite):
     def __new__(self, prn='', nav={}):
         return object.__new__(self)
 
+    def __init__(self, prn='', nav={}):
+        super(GLONASSSat, self).__init__(prn, nav)
+
+
     def getValidEph(self, epoch):
         """get valid navigation message for epoch
 
@@ -267,23 +272,32 @@ class GLONASSSat(Satellite):
                 :param epoch: timestamp when we get the position of satellite (Epoch)
                 :returns: position of satellite at given epoch (Point)
         """
-        aE = 6378136#m
-        omegaE = 0.7292115*10^-4#rad/s
-        mu = 39860044*10^14#m^3/s^2
-        C20 = -1.08263*10^-3
 
+        ephemerids = self.getValidEph(epoch)
 
-        r = lambda x,y,z: math.sqrt(x^2 + y^2 + z^2)
+        t_GLO = (epoch - ephemerids['tauC'] - Epoch(np.array([0,0,0,3,0,0]))).UTC
+        Y0 = [
+        ephemerids['x0'],
+        ephemerids['y0'],
+        ephemerids['z0'],
+        ephemerids['dxdt'],
+        ephemerids['dydt'],
+        ephemerids['dzdt']
+        ]
+        print(Y0)
+        params = [
+        ephemerids['dxdt2'],
+        ephemerids['dydt2'],
+        ephemerids['dzdt2']
+        ]
 
-        dxdt = lambda vx: vx
-        dydt = lambda vy: vy
-        dzdt = lambda vz: vz
+        sol1 = scipy.integrate.solve_ivp(diffeq, [0, -900], Y0, method='RK45', args=params, max_step=10)
+        sol2 = scipy.integrate.solve_ivp(diffeq, [0, 900], Y0, method='RK45', args=params, max_step=10)
+        sol = {}
+        sol['t'] = np.append(sol1.t, sol2.t, axis=0)
+        sol['y'] = np.append(sol1.y, sol2.y, axis=1)
+        return  sol
 
-        dxdt2 = lambda x, z, ax, vy: -mu/r(x, y, z)^3*x + 3/2*C20*mu*aE^2/r(x, y, z)^5*x*(1-5*z^2/r(x, y, z)^2) + ax + omegaE^2*x + 2*omegaE*vy
-        dydt2 = lambda y, z, ay, vx: -mu/r(x, y, z)^3*y + 3/2*C20*mu*aE^2/r(x, y, z)^5*y*(1-5*z^2/r(x, y, z)^2) + ay + omegaE^2*y + 2*omegaE*vx
-        dzdt2 = lambda z: -mu/r(x, y, z)^3*z + 3/2*C20*mu*aE^2/r(x, y, z)^5*z*(1-5*z^2/r(x, y, z)^2 )
-
-        scipy.integrate.RK45()
 
 
 

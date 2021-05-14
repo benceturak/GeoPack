@@ -67,10 +67,6 @@ class Epoch(object):
     def UTC(self):
         ls = LeapSecs().getLeapSecsAt(self)
         return (self - ls).dt
-    @property
-    def SU(self):
-
-        return (self + Epoch(np.array([0,0,0,3,0,0.0]))).UTC
 
     @property
     def MJD(self):
