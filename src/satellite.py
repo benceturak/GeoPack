@@ -274,6 +274,10 @@ class GLONASSSat(Satellite):
         """
 
         ephemerids = self.getValidEph(epoch)
+        if ephemerids['epoch'].DOW == epoch.DOW:
+            dt = epoch.TOW - ephemerids['epoch'].TOW
+        else:
+            pass
 
         t_GLO = (epoch - ephemerids['tauC'] - Epoch(np.array([0,0,0,3,0,0]))).UTC
         Y0 = [
@@ -284,19 +288,22 @@ class GLONASSSat(Satellite):
         ephemerids['dydt'],
         ephemerids['dzdt']
         ]
-        print(Y0)
+        #print(t_GLO)
         params = [
         ephemerids['dxdt2'],
         ephemerids['dydt2'],
         ephemerids['dzdt2']
         ]
 
-        sol1 = scipy.integrate.solve_ivp(diffeq, [0, -900], Y0, method='RK45', args=params, max_step=10)
-        sol2 = scipy.integrate.solve_ivp(diffeq, [0, 900], Y0, method='RK45', args=params, max_step=10)
-        sol = {}
-        sol['t'] = np.append(sol1.t, sol2.t, axis=0)
-        sol['y'] = np.append(sol1.y, sol2.y, axis=1)
-        return  sol
+        #t0 =
+        if dt < 0:
+            sol = scipy.integrate.solve_ivp(diffeq, [0, -900], Y0, method='RK45', t_eval=[dt], args=params, max_step=10)
+        else:
+            sol = scipy.integrate.solve_ivp(diffeq, [0, 900], Y0, method='RK45', t_eval=[dt], args=params, max_step=10)
+
+
+
+        return Point(coord=np.array([sol.y[0,0], sol.y[1,0], sol.y[2,0]]))
 
 
 

@@ -1,7 +1,7 @@
 import numpy as np
 from normalformtofloat import normalFormToFloat
 import math
-from epoch import Epoch
+import epoch
 from satellite import Satellite
 import logging
 
@@ -21,13 +21,13 @@ class GLONASSNavReader(object):
         self.fileName = fileName#filename
         self.comments = []#comment records
         self.navigationDatas = {}#navigation datas
+        self.tauC = epoch.Epoch(np.array([0, 0, 0, 0, 0, 0]))
         try:
             self.fid = open(self.fileName, 'r')
             #start read of header
             self._readHeader()
             #start read of navigation datas
             self._readBody()
-
         finally:
             self.fid.close()
 
@@ -37,10 +37,9 @@ class GLONASSNavReader(object):
         for i in self.navigationDatas[prn]:
             nav = {}
             nav['epoch'] = i[0]
-            try:
-                nav['tauC'] = self.tauC
-            except AttributeError:
-                nav['tauC'] = Epoch(np.array([0,0,0,0,0,0]))
+
+            nav['tauC'] = self.tauC
+
 
             nav['tauN'] = i[1]
             nav['gammaN'] = i[2]
@@ -105,7 +104,7 @@ class GLONASSNavReader(object):
         relFreqBias = normalFormToFloat(line[41:60].strip())
         frameTime = normalFormToFloat(line[60:79].strip())
 
-        navDatas = np.array([[Epoch(np.array([year, month, day, hour, min, sec])), clockBias, relFreqBias, frameTime]])
+        navDatas = np.array([[epoch.Epoch(np.array([year, month, day, hour, min, sec]), system=epoch.UTC), clockBias, relFreqBias, frameTime]])
 
         #read datas row by row
         for i in range(3):
@@ -166,8 +165,8 @@ class GLONASSNavReader(object):
 
     def CORRTOSYSTEMTIME(self,line):
 
-        self.reference = Epoch(np.array([int(line[0:6].strip()), int(line[6:12].strip()), int(line[12:18].strip()), 0, 0, 0]))
-        self.tauC = Epoch(np.array([0, 0, 0, 0, 0, float(line[21:40].strip())]))
+        self.reference = epoch.Epoch(np.array([int(line[0:6].strip()), int(line[6:12].strip()), int(line[12:18].strip()), 0, 0, 0]))
+        self.tauC = epoch.Epoch(np.array([0, 0, 0, 0, 0, float(line[21:40].strip())]))
 
 
     def ENDOFHEADER(self,line):
