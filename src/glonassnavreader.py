@@ -53,7 +53,7 @@ class GLONASSNavReader(object):
             nav['y0'] = i[8]*1000
             nav['dydt'] = i[9]*1000
             nav['dydt2'] = i[10]*1000
-            nav['freqNum'] = i[11]**2
+            nav['freqNum'] = i[11]
 
             nav['z0'] = i[12]*1000
             nav['dzdt'] = i[13]*1000
