@@ -1,5 +1,6 @@
 import epoch
 import numpy as np
+import logging
 
 class SP3Reader(object):
 
@@ -11,7 +12,9 @@ class SP3Reader(object):
         self.fileName = fileName#filename
         self.comments = []#comment records
         self.numOfSats = 0
-        self.positions = np.empty((0,2))
+        self.positions = {}
+        self.accuracy = []
+        #self.positions = np.empty((0,2))
         try:
             self.fid = open(self.fileName, 'r')
             #start read of header
@@ -20,35 +23,92 @@ class SP3Reader(object):
             self._readBody()
         finally:
             self.fid.close()
+    def _readBody(self):
+        #print(self.positions)
+        for e in range(0,self.numOfEpochs):
+            line = self.fid.readline()
+            ep = epoch.Epoch(np.array([int(line[3:7]), int(line[8:10]), int(line[11:13]), int(line[14:16]), int(line[17:19]), float(line[20:31])]))
+            for s in range(0,self.numOfSats):
+                line = self.fid.readline()
+                self.positions[line[1:4]] = np.append(self.positions[line[1:4]], np.array([[ep, float(line[4:18])*1000, float(line[18:32])*1000, float(line[32:46])*1000, line[46:60]]]), axis=0)
+
 
     def _readHeader(self):
 
         for i in range(1, 23):
             line = self.fid.readline()
+            eval('self.headerRow'+str(i)+"(line)")
             try:
-                eval('headerRow'+str(i)+"(line)")
-                logging.info("header row" + i + " record is readed")
+
+                logging.info("header row" + str(i) + " record is readed")
             except:
-                logging.warning("header row" + i + " cannot be readed")
+                logging.warning("header row" + str(i) + " cannot be readed")
                 pass
 
     def headerRow1(self,line):
         self.version = line[1]
-        self.posVerFlag = self.startDate = epoch.Epoch(np.array([int(line[3:7]), int(line[8:10]), int(line[11:13]), int(line[14:16]), int(line[17:19]), float(line[20:31])]))
+        self.posVerFlag = line[2]
+        self.startDate = epoch.Epoch(np.array([int(line[3:7]), int(line[8:10]), int(line[11:13]), int(line[14:16]), int(line[17:19]), float(line[20:31])]))
         self.numOfEpochs = int(line[32:39])
+        self.dataUsed = line[40:45].strip()
+        self.coordinateSystem = line[46:51].strip()
+        self.orbitType = line[52:55].strip()
+        self.agency = line[56:60].strip()
 
-    def headerRow2(self,line):pass
-    def headerRow3(self,line):pass
-    def headerRow4(self,line):pass
-    def headerRow5(self,line):pass
-    def headerRow6(self,line):pass
-    def headerRow7(self,line):pass
-    def headerRow8(self,line):pass
-    def headerRow9(self,line):pass
-    def headerRow10(self,line):pass
-    def headerRow11(self,line):pass
-    def headerRow12(self,line):pass
+
+    def headerRow2(self,line):
+        self.GPSweek = int(line[3:7])
+        self.secondsOfWeek = float(line[8:23])
+        self.epochInterval = float(line[24:38])
+        self.MDF = int(line[39:44])
+        self.fractionalDay = float(line[45:60])
+
+    def headerRow3(self,line):
+        self.numOfSats = int(line[4:6])
+
+        for i in range(0,17):
+            if line[9+i*3:12+i*3] != "  0":
+                self.positions[line[9+i*3:12+i*3]] = np.empty((0,5))
+
+    def headerRow4(self,line):
+        for i in range(0,17):
+            if line[9+i*3:12+i*3] != "  0":
+                self.positions[line[9+i*3:12+i*3]] = np.empty((0,5))
+    def headerRow5(self,line):
+        for i in range(0,17):
+            if line[9+i*3:12+i*3] != "  0":
+                self.positions[line[9+i*3:12+i*3]] = np.empty((0,5))
+    def headerRow6(self,line):
+        for i in range(0,17):
+            if line[9+i*3:12+i*3] != "  0":
+                self.positions[line[9+i*3:12+i*3]] = np.empty((0,5))
+    def headerRow7(self,line):
+        for i in range(0,17):
+            if line[9+i*3:12+i*3] != "  0":
+                self.positions[line[9+i*3:12+i*3]] = np.empty((0,5))
+    def headerRow8(self,line):
+        for i in range(0,17):
+            if line[9+i*3:12+i*3] != "  0":
+                self.accuracy.append(line[9+i*3:12+i*3])
+    def headerRow9(self,line):
+        for i in range(0,17):
+            if line[9+i*3:12+i*3] != "  0":
+                self.accuracy.append(line[9+i*3:12+i*3])
+    def headerRow10(self,line):
+        for i in range(0,17):
+            if line[9+i*3:12+i*3] != "  0":
+                self.accuracy.append(line[9+i*3:12+i*3])
+    def headerRow11(self,line):
+        for i in range(0,17):
+            if line[9+i*3:12+i*3] != "  0":
+                self.accuracy.append(line[9+i*3:12+i*3])
+    def headerRow12(self,line):
+        for i in range(0,17):
+            if line[9+i*3:12+i*3] != "  0":
+                self.accuracy.append(line[9+i*3:12+i*3])
     def headerRow13(self,line):pass
+
+
     def headerRow14(self,line):pass
     def headerRow15(self,line):pass
     def headerRow16(self,line):pass
