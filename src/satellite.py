@@ -185,9 +185,12 @@ class GPSSat(Satellite):
         GM = 3.986005*10**14
         omegaE = 7.2921151467*10**(-5)
 
-        ## TODO: handle the epochs on the GPS weeks borders
         tk = epoch.TOW - ephemerids['TOE']
-
+        while tk >= 3600:
+            tk = tk - 604800
+        while tk <= -3600:
+            tk = tk + 604800
+        print(tk)
         n0 = math.sqrt(GM/ephemerids['a']**3)#mean motion
         n = n0 + ephemerids['deltan']#mean motion difference
         Mk = ephemerids['M0'] + n*tk#mean anomaly
