@@ -186,9 +186,9 @@ class GPSSat(Satellite):
         omegaE = 7.2921151467*10**(-5)
 
         tk = epoch.TOW - ephemerids['TOE']
-        while tk >= 3600:
+        while tk > 3600:
             tk = tk - 604800
-        while tk <= -3600:
+        while tk < -3600:
             tk = tk + 604800
         print(tk)
         n0 = math.sqrt(GM/ephemerids['a']**3)#mean motion
