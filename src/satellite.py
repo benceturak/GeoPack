@@ -7,7 +7,7 @@ from rotation import Rotation
 import ellipsoid
 import scipy.constants
 from scipy.integrate import solve_ivp
-from glonassorbitdiffeq import diffeq
+from glonassorbitdiffeq import *
 import logging
 
 class SatError(Exception):pass
@@ -190,7 +190,6 @@ class GPSSat(Satellite):
             tk = tk - 604800
         while tk < -3600:
             tk = tk + 604800
-        print(tk)
         n0 = math.sqrt(GM/ephemerids['a']**3)#mean motion
         n = n0 + ephemerids['deltan']#mean motion difference
         Mk = ephemerids['M0'] + n*tk#mean anomaly
@@ -251,7 +250,7 @@ class GLONASSSat(Satellite):
 
     def __init__(self, prn='', nav={}):
         super(GLONASSSat, self).__init__(prn, nav)
-        self.diffEqSolved = np.empty((0,3))
+        self.diffEqSolved = np.empty((0,8))
 
     @property
     def f1(self):
@@ -279,6 +278,7 @@ class GLONASSSat(Satellite):
                 break#break loop when valid epoch is finded
         raise TimeError("Epoch out of time frame!")
 
+
     def getSatPos(self, epoch):
         """get satellite position in case of GLONASS satellite
 
@@ -288,14 +288,15 @@ class GLONASSSat(Satellite):
 
 
         ephemerids = self.getValidEph(epoch)
-        if ephemerids['epoch'].DOW == epoch.DOW:
-            dt = epoch.TOW - ephemerids['epoch'].TOW
-        else:
-            pass
+
+
+
 
         solvedEqIndex = np.where(self.diffEqSolved[:,0] == ephemerids['epoch'])
         if np.shape(solvedEqIndex) == (1,0):
-            t_GLO = (epoch - ephemerids['tauC'] - Epoch(np.array([0,0,0,3,0,0]))).UTC
+
+            print('1')
+
             Y0 = [
             ephemerids['x0'],
             ephemerids['y0'],
@@ -313,57 +314,84 @@ class GLONASSSat(Satellite):
 
 
 
-            sol1 = scipy.integrate.solve_ivp(diffeq, [0, -900], Y0, method='RK45', t_eval=list(range(-1, -901, -1)), args=params, max_step=10)
-            sol2 = scipy.integrate.solve_ivp(diffeq, [0, 900], Y0, method='RK45', t_eval=list(range(0, 901)), args=params, max_step=10)
-            #print(sol1)
-            #print(sol2)
-            diffeqsol = np.array([ephemerids['epoch'], sol1, sol2])
-
-            self.diffEqSolved = np.append(self.diffEqSolved, [diffeqsol], axis=0)
+            soleq1 = scipy.integrate.solve_ivp(diffeq, [0, -901], Y0, method='RK45', t_eval=list(range(-1, -902, -1)), args=params, max_step=10)
+            soleq2 = scipy.integrate.solve_ivp(diffeq, [0, 901], Y0, method='RK45', t_eval=list(range(0, 902)), args=params, max_step=10)
 
 
+            sol1 = np.full((1,901), ephemerids['epoch'])
+            sol1 = np.append(sol1, [soleq1.t], axis=0)
+            sol1 = np.append(sol1, [soleq1.y[0,:]], axis=0)
+            sol1 = np.append(sol1, [soleq1.y[1,:]], axis=0)
+            sol1 = np.append(sol1, [soleq1.y[2,:]], axis=0)
+            sol1 = np.append(sol1, [soleq1.y[3,:]], axis=0)
+            sol1 = np.append(sol1, [soleq1.y[4,:]], axis=0)
+            sol1 = np.append(sol1, [soleq1.y[5,:]], axis=0)
 
+            sol1 = sol1.T
+
+            sol1 = sol1[np.argsort(sol1[:,1]),:]
+
+            sol2 = np.full((1,902), ephemerids['epoch'])
+            sol2 = np.append(sol2, [soleq2.t], axis=0)
+            sol2 = np.append(sol2, [soleq2.y[0,:]], axis=0)
+            sol2 = np.append(sol2, [soleq2.y[1,:]], axis=0)
+            sol2 = np.append(sol2, [soleq2.y[2,:]], axis=0)
+            sol2 = np.append(sol2, [soleq2.y[3,:]], axis=0)
+            sol2 = np.append(sol2, [soleq2.y[4,:]], axis=0)
+            sol2 = np.append(sol2, [soleq2.y[5,:]], axis=0)
+
+            sol2 = sol2.T
+
+            sol = np.append(sol1, sol2, axis=0)
+
+
+
+            self.diffEqSolved = np.append(self.diffEqSolved, sol, axis=0)
 
         solvedEqIndex = np.where(self.diffEqSolved[:,0] == ephemerids['epoch'])
-        if dt < 0:
-            epochIndex = np.where(self.diffEqSolved[solvedEqIndex[0][0],1].t == dt)
-            return Point(coord=np.array([self.diffEqSolved[solvedEqIndex[0][0],1].y[0,epochIndex[0][0]], self.diffEqSolved[solvedEqIndex[0][0],1].y[1,epochIndex[0][0]], self.diffEqSolved[solvedEqIndex[0][0],1].y[2,epochIndex[0][0]]]))
-        elif dt >= 0:
-            epochIndex = np.where(self.diffEqSolved[solvedEqIndex[0][0],2].t == dt)
-            return Point(coord=np.array([self.diffEqSolved[solvedEqIndex[0][0],2].y[0,epochIndex[0][0]], self.diffEqSolved[solvedEqIndex[0][0],2].y[1,epochIndex[0][0]], self.diffEqSolved[solvedEqIndex[0][0],2].y[2,epochIndex[0][0]]]))
+
+        dt = ephemerids['tauN'] - ephemerids['gammaN']*(epoch.TOW - ephemerids['epoch'].TOW)
+
+        tk = epoch.TOW - ephemerids['epoch'].TOW + dt
+
+        #print(tk)
+        while tk > 3600:
+            tk = tk - 604800
+        while tk < -3600:
+
+            tk = tk + 604800
+
+        border_cond = np.append([self.diffEqSolved[:,0] == ephemerids['epoch']], [self.diffEqSolved[:,1] == math.floor(tk)], axis=0)
+        border_cond = np.append(border_cond, [self.diffEqSolved[:,1] == math.ceil(tk)], axis=0)
+
+        #print(tk)
+        #tk_border =
+        border_low = self.diffEqSolved[np.where(border_cond[(0,1),:].all(axis=0))]
+        border_heigh = self.diffEqSolved[np.where(border_cond[(0,2),:].all(axis=0))]
+
+        #print(border_low)
+        #print(border_heigh)
+        #print(epoch)
+        #print('------------------------')
 
 
+        if border_low[0,1] == border_heigh[0,1]:
+            px = border_low[0,2]
+            py = border_low[0,3]
+            pz = border_low[0,4]
+        else:
+            px = border_low[0,2] + (tk - border_low[0,1])/(tk - border_heigh[0,1])*(border_heigh[0,2] - border_low[0,2])
+            py = border_low[0,3] + (tk - border_low[0,1])/(tk - border_heigh[0,1])*(border_heigh[0,3] - border_low[0,3])
+            pz = border_low[0,4] + (tk - border_low[0,1])/(tk - border_heigh[0,1])*(border_heigh[0,4] - border_low[0,4])
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+        return Point(coord=np.array([px, py, pz]))
+        #tk - tk_border[1]
+        #if tt < 0:
+        #    epochIndex = np.where(self.diffEqSolved[solvedEqIndex[0][0],1].t == tk)
+        #    return Point(coord=np.array([self.diffEqSolved[solvedEqIndex[0][0],1].y[0,epochIndex[0][0]], self.diffEqSolved[solvedEqIndex[0][0],1].y[1,epochIndex[0][0]], self.diffEqSolved[solvedEqIndex[0][0],1].y[2,epochIndex[0][0]]]))
+        #elif tt >= 0:
+        #    epochIndex = np.where(self.diffEqSolved[solvedEqIndex[0][0],2].t == tk)
+        #    return Point(coord=np.array([self.diffEqSolved[solvedEqIndex[0][0],2].y[0,epochIndex[0][0]], self.diffEqSolved[solvedEqIndex[0][0],2].y[1,epochIndex[0][0]], self.diffEqSolved[solvedEqIndex[0][0],2].y[2,epochIndex[0][0]]]))
 
 
 

@@ -20,7 +20,12 @@ for prn in sp3.positions:
         continue
         sat = gps.getSatellite(prn)
     elif prn[0] == 'R':
-        sat = glo.getSatellite(prn)
+        try:
+            sat = glo.getSatellite(prn)
+        except KeyError:
+            print('No exists PRN' + prn)
+    elif prn[0] == 'E':
+        continue
 
     for e in sp3.positions[prn]:
 
@@ -30,7 +35,4 @@ for prn in sp3.positions:
         except:
             pass
             #print('!')
-    print(prn)
-    print(diff[prn])
-    print('---------------------------')
     #print(sat.getSatPos(epoch.Epoch(np.array([2021,4,3,23,59,59.0]))))
