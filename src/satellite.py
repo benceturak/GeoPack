@@ -397,4 +397,106 @@ class GLONASSSat(Satellite):
 
 
 
-class GalileoSat(Satellite):pass
+class GalileoSat(Satellite):
+    f1 = 1575.42*10**6#Hz
+    f5 = 1191.795*10**6#Hz
+    f5a = 1176.45*10**6#Hz
+    f5b = 1207.14*10**6#Hz
+    f6 = 1278.750*10**6#Hz
+
+    def __new__(self, prn='', nav={}):
+        return object.__new__(self)
+
+    def getValidEph(self, epoch):
+        """get valid navigation message for epoch
+
+                :param epoch: timestamp what we get valid nav message for (Epoch)
+        """
+        #valid time frame from epoch
+        min = epoch - Epoch(np.array([0, 0, 0, 1, 0, 0]))
+        max = epoch + Epoch(np.array([0, 0, 0, 1, 0, 0]))
+
+
+        for nav in self.navigationDatas:#check all navigation message epoch
+            if min <= nav['epoch'] and nav['epoch'] <= max:#if navigation message is in the time frame
+
+                return nav
+                break#break loop when valid epoch is finded
+        raise TimeError("Epoch out of time frame!")
+
+    def getSatPos(self, epoch):
+        """get satellite position in case of GPS satellite
+
+                :param epoch: timestamp when we get the position of satellite (Epoch)
+                :returns: position of satellite at given epoch (Point)
+        """
+        #get valid navigation data to calculate the satellite position
+        ephemerids = self.getValidEph(epoch)
+
+        GM = 3.986005*10**14
+        omegaE = 7.2921151467*10**(-5)
+
+        tk = epoch.TOW - ephemerids['TOE']
+        while tk > 3600:
+            tk = tk - 604800
+        while tk < -3600:
+            tk = tk + 604800
+        n0 = math.sqrt(GM/ephemerids['a']**3)#mean motion
+        n = n0 + ephemerids['deltan']#mean motion difference
+        Mk = ephemerids['M0'] + n*tk#mean anomaly
+
+        Ek = Mk
+        d = 1#difference
+        #eccentricity anomaly (iterative)
+        while abs(d) > 10**(-12):#iteration is ended when the difference between two following step less then 10e-12
+            E_l = Ek
+            Ek = Mk + ephemerids['e']*math.sin(Ek)
+            d = abs(Ek - E_l)
+
+        #true anomaly
+        nu = 2*math.atan(math.sqrt(1 + ephemerids['e'])/math.sqrt(1 - ephemerids['e'])*math.tan(Ek/2))
+
+        phik = nu + ephemerids['omega']
+
+        #correction of argument of latitude
+        duk = ephemerids['Cuc']*math.cos(2*phik) + ephemerids['Cus']*math.sin(2*phik)
+        #correction of radial distance
+        drk = ephemerids['Crc']*math.cos(2*phik) + ephemerids['Crs']*math.sin(2*phik)
+        #correction of inclination
+        dik = ephemerids['Cic']*math.cos(2*phik) + ephemerids['Cis']*math.sin(2*phik)
+
+        #argument of latitude
+        uk = phik + duk
+        #radial distance
+        rk = ephemerids['a']*(1 - ephemerids['e']*math.cos(Ek)) + drk
+        #inclination
+        ik = ephemerids['i0'] + ephemerids['idot']*tk + dik
+
+        #coordinates in the satellite's orbit plane
+        coordsOrbPlane = Point(coord=np.array([rk*math.cos(uk), rk*math.sin(uk), 0]).T, system=ellipsoid.WGS84())
+
+        #longitude of ascending node
+        OMEGAk = ephemerids['OMEGA'] + (ephemerids['OMEGADOT'] - omegaE)*tk - omegaE*ephemerids['TOE']
+
+        #Rotation about z axis with longitude of ascending node
+        #and about x axis with inclination
+        R = Rotation(x=ik, z=OMEGAk, orther="zxy")
+
+        return R*coordsOrbPlane
+
+
+    @property
+    def T1(self):
+        return 1/self.f1
+    @property
+    def T5(self):
+        return 1/self.f5
+    @property
+    def T5a(self):
+        return 1/self.f5a
+    @property
+    def T5b(self):
+        return 1/self.f5b
+    @property
+    def T6(self):
+        return 1/self.f6
