@@ -5,7 +5,7 @@ PLH = 2
 class Point(object):
 
 
-    def __init__(self, id='', coord=np.array([[0.0],[0.0],[0.0]]), type=XYZ, system=None):
+    def __init__(self, id='', code='', coord=np.array([[0.0],[0.0],[0.0]]), type=XYZ, system=None):
         if not isinstance(id, str):
             raise TypeError("id must be String!")
         if np.shape(coord) != (3, 1) and np.shape(coord) != (1, 3) and np.shape(coord) != (3,):
@@ -15,7 +15,8 @@ class Point(object):
         if not isinstance(system, ellipsoid.Ellipsoid) and system != None:
             raise TypeError("system must Ellipoid or None type!")
 
-        self.id = id
+        self._id = id
+        self.code = code
 
         if type == XYZ:
             if np.shape(coord) == (3, 1):
@@ -74,6 +75,10 @@ class Point(object):
     @plh.setter
     def plh(self, c):
         self._plh = c
+
+    @property
+    def id(self):
+        return self._id
 
 
     def __add__(self, other):

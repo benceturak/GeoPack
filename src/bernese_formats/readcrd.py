@@ -1,3 +1,9 @@
+import sys
+sys.path.append('../')
+import numpy as np
+from station import Station
+from network import Network
+from ellipsoid import WGS84
 
 class ReadCRD(object):
     """
@@ -7,11 +13,12 @@ class ReadCRD(object):
     """
 
     def __init__(self, fileName):
-        """GPSNavReader condtructor
+        """ReadCRD constructor
 
         """
 
         self.fileName = fileName#filename
+        self.network = Network()
         #self.comments = []#comment records
         #self.navigationDatas = {}#navigation datas
         #self.tauC = epoch.Epoch(np.array([0, 0, 0, 0, 0, 0]))
@@ -19,7 +26,7 @@ class ReadCRD(object):
             self.fid = open(self.fileName, 'r')
             #start read of header
             self._readHeader()
-            #start read of navigation datas
+            #start read of stations
             self._readBody()
         finally:
             self.fid.close()
@@ -30,27 +37,26 @@ class ReadCRD(object):
         """
         line = self.fid.readline()
 
-        #read navigation datas row by row
+        #read stations row by row
         while line:
+            if line.strip() == '':
+                break
 
 
             numId = line[0:3]
-            digit4id = line[5:9]
+            digit4Id = line[5:9]
             dom = line[11:21]
-            x = line[22:36]
-            y = line[37:51]
-            z = line[52:66]
+            x = float(line[22:36])
+            y = float(line[37:51])
+            z = float(line[52:66])
             flag = line[68:]
 
-            print('.' + numId + '.')
-            print('.' + digit4id + '.')
-            print('.' + dom + '.')
-            print('.' + x + '.')
-            print('.' + y + '.')
-            print('.' + z + '.')
-            print('.' + flag + '.')
+            st = Station(id=digit4Id, code=numId, coord=np.array([[x,y,z]]),system=WGS84())
 
-            break
+            self.network.addStation(st)
+
+
+
 
 
             #read satellite navigation datas in a valid epoch
@@ -62,7 +68,7 @@ class ReadCRD(object):
 
         """
 
-        #read navigation file row by row
+        #read Bernese CRD file header row by row
         for i in range(0,6):
 
             line = self.fid.readline()#read row
@@ -86,6 +92,7 @@ if __name__ == "__main__":
 
     reader = ReadCRD("../../example/BME001.CRD")
 
+    print(reader.network.getStationsMatrix())
 
 
     #print(reader.beta)
