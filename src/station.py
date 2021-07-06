@@ -1,9 +1,21 @@
 import numpy as np
-from point import Point
+import point
+from tropostation import TropoStation
 
-class Station(Point):pass
+class Station(point.Point):
 
-    #def __init__(self, id = '0', coord = np.array([[0.0],[0.0],[0.0]])):
+    def __init__(self, id='', code='', coord=np.array([[0.0],[0.0],[0.0]]), type=point.XYZ, system=None):
+        super(Station, self).__init__(id = id, code = code, coord = coord, type = type, system = system)
+        self.troposphere = None
+
+    def addTropo(self, tropo):
+
+        if isinstance(tropo, TropoStation):
+            self.troposphere = tropo
+        else:
+            raise TypeError()
+
+
 
 
 
