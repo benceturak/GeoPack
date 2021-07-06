@@ -19,7 +19,7 @@ class Epoch(object):
             :param system: time system GPS, UTC (int), default GPS
     """
 
-    def __init__(self, dt, system=GPS):
+    def __init__(self, dt, system=GPS, downloadLeapSec=False):
         """Epoch constructor
 
         """
@@ -28,7 +28,7 @@ class Epoch(object):
             self.dt = dt
         elif system == UTC:
             self.dt = dt
-            ls = LeapSecs().getLeapSecsAt(self)
+            ls = LeapSecs(download=downloadLeapSec).getLeapSecsAt(self)
             #print(self + ls)
             self.dt = (self + ls).dt
 
@@ -241,14 +241,14 @@ if __name__ == "__main__":
     #print(ls.leapSecs)
     a = Epoch(np.array([2021,4,18,23,0,0]), system=GPS)
     b = Epoch(np.array([0,8,27,7,0,60]))
-    c = Epoch(np.array([1998,4,18,15,0,0]), system=UTC)
+    c = Epoch(np.array([1998,4,18,15,0,0]), system=UTC, downloadLeapSec=True)
     #print(c.dt)
     ls = LeapSecs()
     #print(ls.getLeapSecsAt(c))
 
     print(a.dt)
     print(a.UTC)
-    print(a.SU)
+    #print(a.SU)
 
     #print(a + b)
     #print(a+b)
