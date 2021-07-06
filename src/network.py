@@ -4,6 +4,7 @@ class Network(object):
 
     def __init__(self):
         self.stations = []
+        self.satellites = []
 
     def addStation(self, st):
         self.stations.append(st)
