@@ -33,7 +33,7 @@ sec = 0
 
 startEpoch = epoch.Epoch(np.array([year, month, day, hour, min, sec]))
 epdif = epoch.Epoch(np.array([0,0,0,0,1,0]))
-endEpoch = epoch.Epoch(np.array([year, month, day, hour, min, sec])) + epoch.Epoch(np.array([0,0,1,0,0,0]))
+endEpoch = epoch.Epoch(np.array([year, month, day, hour, min, sec])) + epoch.Epoch(np.array([0,0,0,12,0,0]))
 #print(startEpoch)
 #print(endEpoch)
 ep = startEpoch
@@ -58,10 +58,11 @@ difz = np.empty((1,0))
 #print(pos2)
 #print(pos1-pos2)
 while ep < endEpoch:
-    #print(ep)
+    print(ep)
+
     try:
         pos = orbitBroadcast.getSatPos(ep+epoch.Epoch(np.array([0,0,0,0,0,0])))
-
+        print(pos)
         X = np.append(X, pos.xyz[0,0])
         Y = np.append(Y, pos.xyz[1,0])
         Z = np.append(Z, pos.xyz[2,0])
@@ -84,7 +85,8 @@ while ep < endEpoch:
 
         #print(np.shape(difx))
         #print(np.shape(X))
-    except:
+    except epoch.TimeError as er:
+        print(er)
         #print(ep)
         #X = np.append(X, 0)
         #Y = np.append(Y, 0)

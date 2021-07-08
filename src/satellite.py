@@ -7,6 +7,7 @@ from rotation import Rotation
 import ellipsoid
 import scipy.constants
 from scipy.integrate import solve_ivp
+from scipy import interpolate
 from glonassorbitdiffeq import *
 import logging
 
@@ -52,14 +53,6 @@ class Satellite(object):
 
 
         return np.array([start, end])
-
-
-
-
-
-
-
-
 
     def addNavMess(self, nav):
         """add new navigation message of epoch
@@ -293,9 +286,10 @@ class GLONASSSat(Satellite):
 
 
         solvedEqIndex = np.where(self.diffEqSolved[:,0] == ephemerids['epoch'])
+
         if np.shape(solvedEqIndex) == (1,0):
 
-            print('1')
+
 
             Y0 = [
             ephemerids['x0'],
@@ -305,18 +299,17 @@ class GLONASSSat(Satellite):
             ephemerids['dydt'],
             ephemerids['dzdt']
             ]
-            #print(t_GLO)
-            params = [
-            ephemerids['dxdt2'],
-            ephemerids['dydt2'],
-            ephemerids['dzdt2']
-            ]
+
+            #print(np.append(epoch, Y0))
+
+            #print(Y0)
+            #print(params)
 
 
 
-            soleq1 = scipy.integrate.solve_ivp(diffeq, [0, -901], Y0, method='RK45', t_eval=list(range(-1, -902, -1)), args=params, max_step=10)
-            soleq2 = scipy.integrate.solve_ivp(diffeq, [0, 901], Y0, method='RK45', t_eval=list(range(0, 902)), args=params, max_step=10)
-
+            soleq1 = scipy.integrate.solve_ivp(fun=lambda t, w: diffeq(t, w, ephemerids['dxdt2'], ephemerids['dydt2'], ephemerids['dzdt2']), t_span=[0, -901], y0=Y0, method='RK45', t_eval=list(range(-1, -902, -1)), max_step=10)
+            soleq2 = scipy.integrate.solve_ivp(fun=lambda t, w: diffeq(t, w, ephemerids['dxdt2'], ephemerids['dydt2'], ephemerids['dzdt2']), t_span=[0, 901], y0=Y0, method='RK45', t_eval=list(range(0, 902)), max_step=10)
+            #print(2)
 
             sol1 = np.full((1,901), ephemerids['epoch'])
             sol1 = np.append(sol1, [soleq1.t], axis=0)
@@ -344,11 +337,9 @@ class GLONASSSat(Satellite):
 
             sol = np.append(sol1, sol2, axis=0)
 
-
-
+            #print(np.shape(sol))
+            #print(sol[880:885,:])
             self.diffEqSolved = np.append(self.diffEqSolved, sol, axis=0)
-
-        solvedEqIndex = np.where(self.diffEqSolved[:,0] == ephemerids['epoch'])
 
         dt = ephemerids['tauN'] - ephemerids['gammaN']*(epoch.TOW - ephemerids['epoch'].TOW)
 
@@ -361,38 +352,12 @@ class GLONASSSat(Satellite):
 
             tk = tk + 604800
 
-        border_cond = np.append([self.diffEqSolved[:,0] == ephemerids['epoch']], [self.diffEqSolved[:,1] == math.floor(tk)], axis=0)
-        border_cond = np.append(border_cond, [self.diffEqSolved[:,1] == math.ceil(tk)], axis=0)
+        solvedEqIndex = np.where(self.diffEqSolved[:,0] == ephemerids['epoch'])
 
-        #print(tk)
-        #tk_border =
-        border_low = self.diffEqSolved[np.where(border_cond[(0,1),:].all(axis=0))]
-        border_heigh = self.diffEqSolved[np.where(border_cond[(0,2),:].all(axis=0))]
-
-        #print(border_low)
-        #print(border_heigh)
-        #print(epoch)
-        #print('------------------------')
-
-
-        if border_low[0,1] == border_heigh[0,1]:
-            px = border_low[0,2]
-            py = border_low[0,3]
-            pz = border_low[0,4]
-        else:
-            px = border_low[0,2] + (tk - border_low[0,1])/(tk - border_heigh[0,1])*(border_heigh[0,2] - border_low[0,2])
-            py = border_low[0,3] + (tk - border_low[0,1])/(tk - border_heigh[0,1])*(border_heigh[0,3] - border_low[0,3])
-            pz = border_low[0,4] + (tk - border_low[0,1])/(tk - border_heigh[0,1])*(border_heigh[0,4] - border_low[0,4])
-
-        return Point(coord=np.array([px, py, pz]))
-        #tk - tk_border[1]
-        #if tt < 0:
-        #    epochIndex = np.where(self.diffEqSolved[solvedEqIndex[0][0],1].t == tk)
-        #    return Point(coord=np.array([self.diffEqSolved[solvedEqIndex[0][0],1].y[0,epochIndex[0][0]], self.diffEqSolved[solvedEqIndex[0][0],1].y[1,epochIndex[0][0]], self.diffEqSolved[solvedEqIndex[0][0],1].y[2,epochIndex[0][0]]]))
-        #elif tt >= 0:
-        #    epochIndex = np.where(self.diffEqSolved[solvedEqIndex[0][0],2].t == tk)
-        #    return Point(coord=np.array([self.diffEqSolved[solvedEqIndex[0][0],2].y[0,epochIndex[0][0]], self.diffEqSolved[solvedEqIndex[0][0],2].y[1,epochIndex[0][0]], self.diffEqSolved[solvedEqIndex[0][0],2].y[2,epochIndex[0][0]]]))
-
+        fx = interpolate.interp1d(self.diffEqSolved[solvedEqIndex][:,1], self.diffEqSolved[solvedEqIndex][:,2])
+        fy = interpolate.interp1d(self.diffEqSolved[solvedEqIndex][:,1], self.diffEqSolved[solvedEqIndex][:,3])
+        fz = interpolate.interp1d(self.diffEqSolved[solvedEqIndex][:,1], self.diffEqSolved[solvedEqIndex][:,4])
+        return Point(coord=np.array([fx(tk), fy(tk), fz(tk)]))
 
 
 
@@ -413,8 +378,8 @@ class GalileoSat(Satellite):
                 :param epoch: timestamp what we get valid nav message for (Epoch)
         """
         #valid time frame from epoch
-        min = epoch - Epoch(np.array([0, 0, 0, 1, 0, 0]))
-        max = epoch + Epoch(np.array([0, 0, 0, 1, 0, 0]))
+        min = epoch - Epoch(np.array([0, 0, 0, 0, 5, 0]))
+        max = epoch + Epoch(np.array([0, 0, 0, 0, 5, 0]))
 
 
         for nav in self.navigationDatas:#check all navigation message epoch
