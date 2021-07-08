@@ -91,10 +91,14 @@ class GPSNavReader(object):
         while line:
 
             #read satellite navigation datas in a valid epoch
-            self._readEpochSatNav(line)
+            if self.version[0] == 2:
+                self._readEpochSatNavV2(line)
+            elif self.version[0] == 3:
+                self._readEpochSatNavV3(line)
+
             line = self.fid.readline()
 
-    def _readEpochSatNav(self, line):
+    def _readEpochSatNavV2(self, line):
 
 
         #read epoch
@@ -114,7 +118,7 @@ class GPSNavReader(object):
         sec = float(line[17:22])
 
 
-        #satellite clock error polynom coefrficients
+        #satellite clock error polynom coefficients
         clockBias = normalFormToFloat(line[22:41].strip())
         clockDrift = normalFormToFloat(line[41:60].strip())
         clockDriftRate = normalFormToFloat(line[60:79].strip())
@@ -137,6 +141,53 @@ class GPSNavReader(object):
         col1 = normalFormToFloat(line[3:22].strip())
         if line[22:41].strip() != '':
             col2 = normalFormToFloat(line[22:41].strip())
+        navDatas = np.append(navDatas, [[col1, col2]], axis=1)
+
+
+        if prn in self.navigationDatas.keys():#if already there is at least one observation to this satellite
+            self.navigationDatas[prn] = np.append(self.navigationDatas[prn], navDatas, axis=0)
+        else:#if there is not observation to this satellite
+            self.navigationDatas[prn] = navDatas
+
+    def _readEpochSatNavV3(self, line):
+
+
+        #read epoch
+        prn = line[0:3]#satellite PRN extanded system markar and 0 if necessary
+
+
+        year = int(line[4:8])
+        month = int(line[9:11])
+        day = int(line[12:14])
+        hour = int(line[15:17])
+        min = int(line[18:20])
+        sec = int(line[21:23])
+
+
+
+        #satellite clock error polynom coefficients
+        clockBias = normalFormToFloat(line[23:42].strip())
+        clockDrift = normalFormToFloat(line[42:61].strip())
+        clockDriftRate = normalFormToFloat(line[61:80].strip())
+
+        navDatas = np.array([[Epoch(np.array([year, month, day, hour, min, sec])), clockBias, clockDrift, clockDriftRate]])
+
+        #read datas row by row
+        for i in range(6):
+            line = self.fid.readline()
+            col1 = normalFormToFloat(line[4:23].strip())#cell 1
+            col2 = normalFormToFloat(line[23:42].strip())#cell 2
+            col3 = normalFormToFloat(line[42:61].strip())#cell 3
+            col4 = normalFormToFloat(line[61:80].strip())#cell 4
+
+            navDatas = np.append(navDatas, [[col1, col2, col3, col4]], axis=1)
+
+
+        #read last residual row
+        line = self.fid.readline()
+        col1 = normalFormToFloat(line[4:23].strip())
+        if line[23:42].strip() != '':
+            col2 = normalFormToFloat(line[23:42].strip())
         navDatas = np.append(navDatas, [[col1, col2]], axis=1)
 
 
@@ -213,12 +264,12 @@ class GPSNavReader(object):
         pass
 if __name__ == "__main__":
 
-    reader = GPSNavReader("61300921A.19n")
+    reader = GPSNavReader("../data/tomography/BRDC00WRD_R_20173640000_01D_GN.rnx")
 
 
     print(reader.navigationDatas['G08'])
 
     #print(reader.beta)
-    print(reader.delta_utc)
+    #print(reader.delta_utc)
     #print(np.shape(reader.getObservations('G08', "S1", 0)))
     #print(reader.getObservations('G08', "S2", 0))

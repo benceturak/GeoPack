@@ -4,23 +4,23 @@ import numpy as np
 
 class Rotation(object):
 
-    def __init__(self, x=0, y=0, z=0, orther='xyz'):
+    def __init__(self, x=0, y=0, z=0, order='xyz'):
 
         Rx = np.array([[1, 0, 0], [0, math.cos(x), -math.sin(x)], [0, math.sin(x), math.cos(x)]])
         Ry = np.array([[math.cos(y), 0, math.sin(y)], [0, 1, 0], [-math.sin(y), 0, math.cos(y)]])
         Rz = np.array([[math.cos(z), -math.sin(z), 0], [math.sin(z), math.cos(z), 0], [0, 0, 1]])
 
-        if orther=='xyz':
+        if order=='xyz':
             self.matrix = np.dot(np.dot(Rx,Ry), Rz)
-        elif orther == 'xzy':
+        elif order == 'xzy':
             self.matrix = np.dot(np.dot(Rx,Rz), Rx)
-        elif orther == 'yxz':
+        elif order == 'yxz':
             self.matrix = np.dot(np.dot(Ry,Rx), Rz)
-        elif orther == 'yzx':
+        elif order == 'yzx':
             self.matrix = np.dot(np.dot(Ry,Rz), Ry)
-        elif orther == 'zxy':
+        elif order == 'zxy':
             self.matrix = np.dot(np.dot(Rz,Rx), Ry)
-        elif orther == 'zyx':
+        elif order == 'zyx':
             self.matrix = np.dot(np.dot(Rz,Ry), Rx)
 
     def setRot(self, R):
@@ -33,7 +33,7 @@ class Rotation(object):
             R.setRot(np.dot(self.matrix, other.matrix))
             return R
         elif isinstance(other, Point) :
-            return Point(other.id, np.dot(self.matrix, other.xyz))
+            return Point(id=other.id, coord=np.dot(self.matrix, other.xyz))
         elif isinstance(other,np.ndarray):
             ps = np.empty((0,))
             for p in other:
