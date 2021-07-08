@@ -33,7 +33,7 @@ class Rotation(object):
             R.setRot(np.dot(self.matrix, other.matrix))
             return R
         elif isinstance(other, Point) :
-            return Point(other.id, np.dot(self.matrix, other.xyz))
+            return Point(id=other.id, coord=np.dot(self.matrix, other.xyz))
         elif isinstance(other,np.ndarray):
             ps = np.empty((0,))
             for p in other:
