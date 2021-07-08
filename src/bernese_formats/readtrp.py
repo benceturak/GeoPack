@@ -88,7 +88,6 @@ class ReadTRP(object):
         for i in range(0,6):
 
             line = self.fid.readline()#read row
-            print(line)
             continue
 
             type = line[60:].replace("/","_").replace(":","_").replace("-","_").replace("#","").replace(",","").replace(" ","").replace("\n","")#replace special chars in title
