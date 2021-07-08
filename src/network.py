@@ -6,8 +6,14 @@ class Network(object):
         self.stations = []
         self.satellites = []
 
+    def getStations(self):
+        for s in self.stations:
+            yield s
+
     def addStation(self, st):
         self.stations.append(st)
+    def addSatellite(self, sat):
+        self.satellites.append(sat)
 
     def getStationsMatrix(self):
         mat = np.empty((0,3))

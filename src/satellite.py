@@ -215,16 +215,18 @@ class GPSSat(Satellite):
         ik = ephemerids['i0'] + ephemerids['idot']*tk + dik
 
         #coordinates in the satellite's orbit plane
-        coordsOrbPlane = Point(coord=np.array([rk*math.cos(uk), rk*math.sin(uk), 0]).T, system=ellipsoid.WGS84())
+        coordsOrbPlane = Point(coord=np.array([rk*math.cos(uk), rk*math.sin(uk), 0]).T)
 
         #longitude of ascending node
         OMEGAk = ephemerids['OMEGA'] + (ephemerids['OMEGADOT'] - omegaE)*tk - omegaE*ephemerids['TOE']
 
         #Rotation about z axis with longitude of ascending node
         #and about x axis with inclination
-        R = Rotation(x=ik, z=OMEGAk, orther="zxy")
+        R = Rotation(x=ik, z=OMEGAk, order="zxy")
 
-        return R*coordsOrbPlane
+        p = R*coordsOrbPlane
+        p.system = ellipsoid.WGS84()
+        return p
 
 
     @property
@@ -357,7 +359,7 @@ class GLONASSSat(Satellite):
         fx = interpolate.interp1d(self.diffEqSolved[solvedEqIndex][:,1], self.diffEqSolved[solvedEqIndex][:,2])
         fy = interpolate.interp1d(self.diffEqSolved[solvedEqIndex][:,1], self.diffEqSolved[solvedEqIndex][:,3])
         fz = interpolate.interp1d(self.diffEqSolved[solvedEqIndex][:,1], self.diffEqSolved[solvedEqIndex][:,4])
-        return Point(coord=np.array([fx(tk), fy(tk), fz(tk)]))
+        return Point(coord=np.array([fx(tk), fy(tk), fz(tk)]), system=ellipsoid.WGS84())
 
 
 
@@ -445,9 +447,10 @@ class GalileoSat(Satellite):
 
         #Rotation about z axis with longitude of ascending node
         #and about x axis with inclination
-        R = Rotation(x=ik, z=OMEGAk, orther="zxy")
-
-        return R*coordsOrbPlane
+        R = Rotation(x=ik, z=OMEGAk, order="zxy")
+        p = R*coordsOrbPlane
+        p.system = ellipsoid.WGS84()
+        return p
 
 
     @property
