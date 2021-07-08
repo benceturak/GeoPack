@@ -1,33 +1,33 @@
 import numpy as np
 from normalformtofloat import normalFormToFloat
 import math
-import epoch
+from epoch import Epoch
 from satellite import Satellite
 import logging
 
-class GLONASSNavReader(object):
+class GalileoNavReader(object):
     """
-        GPSNAvReader class to read RINEX navigation (GPS) file
+        GalileoNAvReader class to read RINEX navigation (Galileo) file
         RINEX v2.10
 
             :param fileName: name of navigation file (string)
     """
 
     def __init__(self, fileName):
-        """GPSNavReader condtructor
+        """GalileoNavReader condtructor
 
         """
 
         self.fileName = fileName#filename
         self.comments = []#comment records
         self.navigationDatas = {}#navigation datas
-        self.tauC = epoch.Epoch(np.array([0, 0, 0, 0, 0, 0]))
         try:
             self.fid = open(self.fileName, 'r')
             #start read of header
             self._readHeader()
             #start read of navigation datas
             self._readBody()
+
         finally:
             self.fid.close()
 
@@ -38,30 +38,42 @@ class GLONASSNavReader(object):
             nav = {}
             nav['epoch'] = i[0]
 
-            try:
-                nav['tauC'] = self.tauC
-            except:
-                nav['tauC'] = epoch.Epoch(np.array([0, 0, 0, 0, 0, 0]))
+            nav['a0'] = i[1]
+            nav['a1'] = i[2]
+            nav['a2'] = i[3]
 
+            nav['IODE'] = i[4]
+            nav['Crs'] = i[5]
+            nav['deltan'] = i[6]
+            nav['M0'] = i[7]
 
-            nav['tauN'] = i[1]
-            nav['gammaN'] = i[2]
-            nav['tk'] = i[3]
+            nav['Cuc'] = i[8]
+            nav['e'] = i[9]
+            nav['Cus'] = i[10]
+            nav['a'] = i[11]**2
 
-            nav['x0'] = i[4]*1000
-            nav['dxdt'] = i[5]*1000
-            nav['dxdt2'] = i[6]*1000
-            nav['health'] = i[7]
+            nav['TOE'] = i[12]
+            nav['Cic'] = i[13]
+            nav['OMEGA'] = i[14]
+            nav['Cis'] = i[15]
 
-            nav['y0'] = i[8]*1000
-            nav['dydt'] = i[9]*1000
-            nav['dydt2'] = i[10]*1000
-            nav['freqNum'] = i[11]
+            nav['i0'] = i[16]
+            nav['Crc'] = i[17]
+            nav['omega'] = i[18]
+            nav['OMEGADOT'] = i[19]
 
-            nav['z0'] = i[12]*1000
-            nav['dzdt'] = i[13]*1000
-            nav['dzdt2'] = i[14]*1000
-            nav['operInfo'] = i[15]
+            nav['idot'] = i[20]
+            nav['codesL2'] = i[21]
+            nav['GPSWEEK'] = i[22]
+            nav['flagL2P'] = i[23]
+
+            nav['SVaccuracy'] = i[24]
+            nav['SVhealth'] = i[25]
+            nav['TGD'] = i[26]
+            nav['IODC'] = i[27]
+
+            nav['transmTime'] = i[28]
+            nav['fitInterval'] = i[29]
 
             sat.addNavMess(nav)
 
@@ -90,7 +102,7 @@ class GLONASSNavReader(object):
 
 
         #read epoch
-        prn = "R" + line[0:2].replace(" ","0")#satellite PRN extanded system markar and 0 if necessary
+        prn = "G" + line[0:2].replace(" ","0")#satellite PRN extanded system markar and 0 if necessary
 
 
         #read 2 digits year and convert to 4 digits
@@ -106,15 +118,15 @@ class GLONASSNavReader(object):
         sec = float(line[17:22])
 
 
-        #satellite clock error polynom coefrficients
+        #satellite clock error polynom coefficients
         clockBias = normalFormToFloat(line[22:41].strip())
-        relFreqBias = normalFormToFloat(line[41:60].strip())
-        frameTime = normalFormToFloat(line[60:79].strip())
+        clockDrift = normalFormToFloat(line[41:60].strip())
+        clockDriftRate = normalFormToFloat(line[60:79].strip())
 
-        navDatas = np.array([[epoch.Epoch(np.array([year, month, day, hour, min, sec]), system=epoch.UTC), clockBias, relFreqBias, frameTime]])
+        navDatas = np.array([[Epoch(np.array([year, month, day, hour, min, sec])), clockBias, clockDrift, clockDriftRate]])
 
         #read datas row by row
-        for i in range(3):
+        for i in range(6):
             line = self.fid.readline()
             col1 = normalFormToFloat(line[3:22].strip())#cell 1
             col2 = normalFormToFloat(line[22:41].strip())#cell 2
@@ -122,6 +134,14 @@ class GLONASSNavReader(object):
             col4 = normalFormToFloat(line[60:79].strip())#cell 4
 
             navDatas = np.append(navDatas, [[col1, col2, col3, col4]], axis=1)
+
+
+        #read last residual row
+        line = self.fid.readline()
+        col1 = normalFormToFloat(line[3:22].strip())
+        if line[22:41].strip() != '':
+            col2 = normalFormToFloat(line[22:41].strip())
+        navDatas = np.append(navDatas, [[col1, col2]], axis=1)
 
 
         if prn in self.navigationDatas.keys():#if already there is at least one observation to this satellite
@@ -147,27 +167,37 @@ class GLONASSNavReader(object):
 
         #satellite clock error polynom coefficients
         clockBias = normalFormToFloat(line[23:42].strip())
-        relFreqBias = normalFormToFloat(line[42:61].strip())
-        frameTime = normalFormToFloat(line[61:80].strip())
+        clockDrift = normalFormToFloat(line[42:61].strip())
+        clockDriftRate = normalFormToFloat(line[61:80].strip())
 
-        navDatas = np.array([[epoch.Epoch(np.array([year, month, day, hour, min, sec]), system=epoch.UTC), clockBias, relFreqBias, frameTime]])
+        navDatas = np.array([[Epoch(np.array([year, month, day, hour, min, sec])), clockBias, clockDrift, clockDriftRate]])
 
         #read datas row by row
-        for i in range(3):
+        for i in range(6):
             line = self.fid.readline()
             col1 = normalFormToFloat(line[4:23].strip())#cell 1
             col2 = normalFormToFloat(line[23:42].strip())#cell 2
             col3 = normalFormToFloat(line[42:61].strip())#cell 3
-            col4 = normalFormToFloat(line[61:80].strip())#cell 4
+            if line[61:80].strip() != '':
+                col4 = normalFormToFloat(line[61:80].strip())#cell 4
+            else:
+                col4 = 0
 
             navDatas = np.append(navDatas, [[col1, col2, col3, col4]], axis=1)
+
+
+        #read last residual row
+        line = self.fid.readline()
+        col1 = normalFormToFloat(line[4:23].strip())
+        if line[23:42].strip() != '':
+            col2 = normalFormToFloat(line[23:42].strip())
+        navDatas = np.append(navDatas, [[col1, col2]], axis=1)
 
 
         if prn in self.navigationDatas.keys():#if already there is at least one observation to this satellite
             self.navigationDatas[prn] = np.append(self.navigationDatas[prn], navDatas, axis=0)
         else:#if there is not observation to this satellite
             self.navigationDatas[prn] = navDatas
-
 
 
     def _readHeader(self):
@@ -210,21 +240,39 @@ class GLONASSNavReader(object):
     def COMMENT(self,line):
         self.comments.append(line[0:60].strip())
 
-    def CORRTOSYSTEMTIME(self,line):
+    def IONALPHA(self, line):
+        a0 = normalFormToFloat(line[2:14].strip())
+        a1 = normalFormToFloat(line[14:26].strip())
+        a2 = normalFormToFloat(line[26:38].strip())
+        a3 = normalFormToFloat(line[38:50].strip())
 
-        self.reference = epoch.Epoch(np.array([int(line[0:6].strip()), int(line[6:12].strip()), int(line[12:18].strip()), 0, 0, 0]))
-        self.tauC = epoch.Epoch(np.array([0, 0, 0, 0, 0, float(line[21:40].strip())]))
+        self.alpha = np.array([a0, a1, a2, a3])
 
+    def IONBETA(self, line):
+        b0 = normalFormToFloat(line[2:14].strip())
+        b1 = normalFormToFloat(line[14:26].strip())
+        b2 = normalFormToFloat(line[26:38].strip())
+        b3 = normalFormToFloat(line[38:50].strip())
+
+        self.beta = np.array([b0, b1, b2, b3])
+
+    def DELTA_UTC_A0A1TW(self,line):
+        a0 = normalFormToFloat(line[3:22].strip())
+        a1 = normalFormToFloat(line[22:41].strip())
+        T = int(line[41:50])
+        W = int(line[50:59])
+        self.delta_utc = np.array([a0, a1, T, W])
 
     def ENDOFHEADER(self,line):
         pass
 if __name__ == "__main__":
 
-    reader = GLONASSNavReader("../data/tomography/BRDC00WRD_R_20173640000_01D_RN.rnx")
+    reader = GalileoNavReader("../data/tomography/BRDC00WRD_R_20173640000_01D_EN.rnx")
 
 
-    print(reader.navigationDatas['R08'])
+    print(reader.navigationDatas['E08'])
 
     #print(reader.beta)
+    #print(reader.delta_utc)
     #print(np.shape(reader.getObservations('G08', "S1", 0)))
     #print(reader.getObservations('G08', "S2", 0))
