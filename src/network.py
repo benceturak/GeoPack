@@ -9,6 +9,9 @@ class Network(object):
     def getStations(self):
         for s in self.stations:
             yield s
+    def getSatellites(self):
+        for s in self.satellites:
+            yield s
 
     def addStation(self, st):
         self.stations.append(st)

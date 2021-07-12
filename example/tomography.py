@@ -15,7 +15,7 @@ source_dir = '../data/tomography/'
 station_coords = source_dir+'HCONTROL.CRD'
 #troposphere files
 #Bernese troposphere file TRP
-bernese_tropo = source_dir+'.TRP'
+bernese_tropo = source_dir+'CO21173H.TRP'
 #VMF1 grid file
 vmf1_grid = source_dir+'VMFG_20201102.H00'
 #satellite broadcast files
@@ -39,20 +39,26 @@ sat_list = ['G01', 'G02', 'G03', 'G04', 'G05', 'G06','G07', 'G08', 'G09', 'G10',
             'E31', 'E32', 'E33', 'E34', 'E35', 'E36','E37', 'E38', 'E39', 'E40']
 
 network = readcrd.ReadCRD(station_coords).network
+tropo = readtrp.ReadTRP(bernese_tropo)
+
 brdc = broadcastnavreader.BroadcastNavReader(brdc_mixed)
 
 
-for sta in stations.getStations():
-    print(sta)
+for sat in brdc.getSatellites():
+    network.addSatellite(sat)
 
-exit()
 
-for prn in sat_list:
-    try:
-        sat = brdc.getSatellite(prn)
-        print(prn)
-        print(sat.getSatPos(ep).getPLH())
-    except epoch.TimeError as er:
-        print(er)
-    except KeyError as er:
-        print(er)
+
+
+
+for sta in network.getStations():
+    print(sta.id)
+    for sat in network.getSatellites():
+        try:
+
+            print(sat.prn)
+            print(sat.getElevAzimuth(sta, ep))
+        except epoch.TimeError as er:
+            print(er)
+        except KeyError as er:
+            print(er)
