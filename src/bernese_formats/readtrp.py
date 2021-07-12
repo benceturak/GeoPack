@@ -2,8 +2,10 @@ import sys
 sys.path.append('../')
 import numpy as np
 from station import Station
-from tropostation import TropoStation
+#from tropostation import TropoStation
 import epoch
+from scipy import interpolate
+
 
 class ReadTRP(object):
     """
@@ -52,7 +54,7 @@ class ReadTRP(object):
             hour = int(line[35:37])
             min = int(line[38:40])
             sec = int(line[41:43])
-            ep = epoch.Epoch(np.array([year,month,day,hour,min,sec]), epoch.GPS)
+            ep = epoch.Epoch(np.array([year,month,day,hour,min,sec]), epoch.GPS).MJD
 
             #print(ep)
 
@@ -103,6 +105,34 @@ class ReadTRP(object):
 
             if type == 'ENDOFHEADER':
                 break
+
+    def get_MOD_U(self, digit4Id, ep):
+        f = interpolate.interp1d(self.troposphere[digit4Id][:,0], self.troposphere[digit4Id][:,1])
+        return f(ep.MJD)
+    def get_CORR_U(self, digit4Id, ep):
+        f = interpolate.interp1d(self.troposphere[digit4Id][:,0], self.troposphere[digit4Id][:,2])
+        return f(ep.MJD)
+    def get_SIGMA_U(self, digit4Id, ep):
+        f = interpolate.interp1d(self.troposphere[digit4Id][:,0], self.troposphere[digit4Id][:,3])
+        return f(ep.MJD)
+    def get_TOTAL_U(self, digit4Id, ep):
+        f = interpolate.interp1d(self.troposphere[digit4Id][:,4], self.troposphere[digit4Id][:,4])
+        return f(ep.MJD)
+    def get_CORR_N(self, digit4Id, ep):
+        f = interpolate.interp1d(self.troposphere[digit4Id][:,0], self.troposphere[digit4Id][:,5])
+        return f(ep.MJD)
+    def get_SIGMA_N(self, digit4Id, ep):
+        f = interpolate.interp1d(self.troposphere[digit4Id][:,0], self.troposphere[digit4Id][:,6])
+        return f(ep.MJD)
+    def get_CORR_E(self, digit4Id, ep):
+        f = interpolate.interp1d(self.troposphere[digit4Id][:,0], self.troposphere[digit4Id][:,7])
+        return f(ep.MJD)
+    def get_SIGMA_E(self, digit4Id, ep):
+        f = interpolate.interp1d(self.troposphere[digit4Id][:,0], self.troposphere[digit4Id][:,8])
+        return f(ep.MJD)
+
+
+
 
     def getTropoByStationEpoch(self, digit4Id, ep):
 

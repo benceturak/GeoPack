@@ -6,6 +6,8 @@ import readcrd
 import readtrp
 import epoch
 import numpy as np
+import vmf1gridreader
+import vmf1
 
 
 
@@ -20,7 +22,6 @@ bernese_tropo = source_dir+'CO21173H.TRP'
 vmf1_grid = source_dir+'VMFG_20201102.H00'
 #satellite broadcast files
 brdc_mixed = source_dir+'BRDC00WRD_S_20211840000_01D_MN.rnx'
-
 #epoch of the calculation
 ep = epoch.Epoch(np.array([2021,7,3,6,0,0]))
 
@@ -40,25 +41,56 @@ sat_list = ['G01', 'G02', 'G03', 'G04', 'G05', 'G06','G07', 'G08', 'G09', 'G10',
 
 network = readcrd.ReadCRD(station_coords).network
 tropo = readtrp.ReadTRP(bernese_tropo)
+grid = vmf1gridreader.VMF1GridReader(vmf1_grid)
+mapping_function = vmf1.VMF1(grid)
+
+
 
 brdc = broadcastnavreader.BroadcastNavReader(brdc_mixed)
+
+
+
 
 
 for sat in brdc.getSatellites():
     network.addSatellite(sat)
 
 
+tropo_ep = epoch.Epoch(np.array([2021,6,22,1,0,0]))
 
+matrix = np.empty((0,5))
 
 
 for sta in network.getStations():
-    print(sta.id)
-    for sat in network.getSatellites():
-        try:
 
-            print(sat.prn)
-            print(sat.getElevAzimuth(sta, ep))
-        except epoch.TimeError as er:
-            print(er)
-        except KeyError as er:
-            print(er)
+    try:
+
+        zwd = tropo.get_CORR_U(sta.id, tropo_ep)
+
+        grad_n = tropo.get_CORR_N(sta.id, tropo_ep)
+        grad_e = tropo.get_CORR_E(sta.id, tropo_ep)
+
+        for sat in network.getSatellites():
+            try:
+                elevAz = sat.getElevAzimuth(sta, ep)
+
+                if elevAz[0] > 0:
+
+
+                    swd = mapping_function.slantDelay_w(zwd, sta, elevAz[1], elevAz[0], grad_n, grad_e, tropo_ep)
+
+
+
+                    row = np.array([[sta.id, sat.prn, elevAz[1], elevAz[0], swd]])
+
+                    matrix = np.append(matrix, row, axis=0)
+
+
+
+            except epoch.TimeError as er:
+                print(er)
+    except KeyError as er:
+        print(er)
+
+print(matrix)
+print(np.shape(matrix))
