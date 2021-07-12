@@ -4,8 +4,9 @@ import math
 from epoch import Epoch
 from satellite import Satellite
 import logging
+from navreader import NavReader
 
-class GPSNavReader(object):
+class GPSNavReader(NavReader):
     """
         GPSNAvReader class to read RINEX navigation (GPS) file
         RINEX v2.10
@@ -13,23 +14,6 @@ class GPSNavReader(object):
             :param fileName: name of navigation file (string)
     """
 
-    def __init__(self, fileName):
-        """GPSNavReader condtructor
-
-        """
-
-        self.fileName = fileName#filename
-        self.comments = []#comment records
-        self.navigationDatas = {}#navigation datas
-        try:
-            self.fid = open(self.fileName, 'r')
-            #start read of header
-            self._readHeader()
-            #start read of navigation datas
-            self._readBody()
-
-        finally:
-            self.fid.close()
 
     def getSatellite(self, prn):
 

@@ -4,8 +4,9 @@ import math
 import epoch
 from satellite import Satellite
 import logging
+from navreader import NavReader
 
-class GLONASSNavReader(object):
+class GLONASSNavReader(NavReader):
     """
         GPSNAvReader class to read RINEX navigation (GPS) file
         RINEX v2.10
@@ -17,19 +18,8 @@ class GLONASSNavReader(object):
         """GPSNavReader condtructor
 
         """
-
-        self.fileName = fileName#filename
-        self.comments = []#comment records
-        self.navigationDatas = {}#navigation datas
         self.tauC = epoch.Epoch(np.array([0, 0, 0, 0, 0, 0]))
-        try:
-            self.fid = open(self.fileName, 'r')
-            #start read of header
-            self._readHeader()
-            #start read of navigation datas
-            self._readBody()
-        finally:
-            self.fid.close()
+        super(GLONASSNavReader, self).__init__(fileName)
 
     def getSatellite(self, prn):
 
