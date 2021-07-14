@@ -51,7 +51,7 @@ class VMF1(object):
 
     def fun_h(self, st, e, ep):
 
-        a_h = self.vmf1grid.getA_h(st)
+        a_h = self.vmf1grid.getA_h(st, ep)
         b_h = self.b_h
         c_h = self.c_h(st, ep)
         sine = np.sin(e)
@@ -67,7 +67,7 @@ class VMF1(object):
     def fun_h_der(self, st, e, ep):
 
 
-        a_h = self.vmf1grid.getA_h(st)
+        a_h = self.vmf1grid.getA_h(st, ep)
         b_h = self.b_h
         c_h = self.c_h(st, ep)
         sine = np.sin(e)
@@ -86,7 +86,7 @@ class VMF1(object):
 
     def fun_w(self, st, e, ep):
 
-        a_w = self.vmf1grid.getA_w(st)
+        a_w = self.vmf1grid.getA_w(st, ep)
         b_w = self.b_w
         c_w = self.c_w
         sine = np.sin(e)
@@ -102,7 +102,7 @@ class VMF1(object):
     def fun_w_der(self, st, e, ep):
 
 
-        a_w = self.vmf1grid.getA_w(st)
+        a_w = self.vmf1grid.getA_w(st, ep)
         b_w = self.b_w
         c_w = self.c_w
         sine = np.sin(e)
@@ -130,15 +130,15 @@ if __name__ == "__main__":
 
     sta = Station(coord=np.array([np.pi/2, np.pi/2,200]), type=2, system=WGS84())
 
-    ep = Epoch(np.array([2020,11,2,0,0,0]))
+    ep = Epoch(np.array([2020,11,2,3,0,0]))
     print(ep.MJD)
     print(sta.getPLH())
     el = np.pi/4
     az = 0
 
 
-
-    grid = VMF1GridReader('../data/tomography/VMFG_20201102.H00')
+    filenames = ['../data/tomography/VMFG_20201102.H00', '../data/tomography/VMFG_20201102.H06', '../data/tomography/VMFG_20201102.H12', '../data/tomography/VMFG_20201102.H18']
+    grid = VMF1GridReader(filenames)
 
     mapping_fun = VMF1(grid)
 
