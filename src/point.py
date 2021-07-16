@@ -80,6 +80,16 @@ class Point(object):
     def id(self):
         return self._id
 
+    def dist(self, other):
+        if isinstance(other, Point):
+            xyz1 = self.getXYZ()
+            xyz2 = other.getXYZ()
+            return np.sqrt((xyz1[0,0] - xyz2[0,0])**2 + (xyz1[1,0] - xyz2[1,0])**2 + (xyz1[2,0] - xyz2[2,0])**2)
+        else:
+            raise TypeError()
+
+
+
 
     def __add__(self, other):
         if not isinstance(other, Point):
