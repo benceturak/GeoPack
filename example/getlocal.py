@@ -21,10 +21,10 @@ class GetLocal(object):
     def y(self, lon):
         N = lambda phi: self.a/(1 - self.e**2*np.sin(phi)**2)**(-1/2)
 
-        mid_lat = (self.min[1] + self.max[1])/2
+        mid_lat = (self.min[0] + self.max[0])/2
         y = lambda deltaLam: N(mid_lat)*np.cos(mid_lat)*deltaLam
 
-        return y(self.min[1] - lon)
+        return y(lon - self.min[1])
     def z(self, h):
         return h - self.min[2]
 
