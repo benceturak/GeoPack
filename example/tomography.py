@@ -9,7 +9,9 @@ import numpy as np
 import vmf1gridreader
 import vmf1
 import getlocal
-
+import line
+import point
+import mart
 
 
 #input files
@@ -54,15 +56,37 @@ matrix = np.empty((0,5))
 min = np.array([40.0*np.pi/180, 1.0*np.pi/180,    0])
 max = np.array([53.0*np.pi/180,25.0*np.pi/180,12000])
 
+gridp = np.arange(min[0], max[0], 0.6*np.pi/180)
+gridl = np.arange(min[1], max[1], 0.6*np.pi/180)
+gridh = np.array([0,1000,2000,3000,5500,8000,12000])
+
 trafo2local = getlocal.GetLocal(min, max)
+
+gridx = trafo2local.x(gridp)
+gridy = trafo2local.y(gridl)
+gridz = trafo2local.z(gridh)
+
+cellX = len(gridx)-1
+cellY = len(gridy)-1
+cellZ = len(gridz)-1
+
+cellNum_level = cellX*cellY
+#import matplotlib.pyplot as plt
+#from mpl_toolkits.mplot3d import Axes3D
+#fig = plt.figure()
+#ax = fig.add_subplot(111, projection='3d')
+
+
+A = np.empty((0,cellX*cellY*cellZ))
+b = np.empty((0,1))
 
 for sta in network.getStations():
 
     plh = sta.getPLH()
     #print(plh[0:2,0]*180/np.pi)
 
-    print(trafo2local.getLocalCoords(sta))
-    continue
+    loc = trafo2local.getLocalCoords(sta)
+
 
     try:
 
@@ -80,11 +104,123 @@ for sta in network.getStations():
 
                     swd = mapping_function.slantDelay_w(zwd, sta, elevAz[1], elevAz[0], grad_n, grad_e, grid_ep)
 
+                    ray = line.Line(loc, elevAz[1], elevAz[0])
+                    #print(sta.getPLH()[0:2,0]*180/np.pi)
+                    #print(loc)
+
+                    locxyz = loc.getXYZ()
+
+                    nods = np.array([loc])
+                    x = np.empty((0,))
+                    y = np.empty((0,))
+                    z = np.empty((0,))
+                    for a in ray.getPointAtT(ray.getTwhereZ([0])):
+                        pass#print(a)
+
+                    for sec in ray.getPointAtT(ray.getTwhereX(gridx)):
+                        if gridx[-1] >= sec.getXYZ()[1,0] >= gridx[0] and gridy[-1] >= sec.getXYZ()[0,0] >= gridy[0] and gridz[-1] >= sec.getXYZ()[2,0] >= locxyz[2,0]:
+                            nods = np.append(nods, sec)
+
+                    for sec in ray.getPointAtT(ray.getTwhereY(gridy)):
+                        if gridx[-1] >= sec.getXYZ()[1,0] >= gridx[0] and gridy[-1] >= sec.getXYZ()[0,0] >= gridy[0] and gridz[-1] >= sec.getXYZ()[2,0] >= locxyz[2,0]:
+                            nods = np.append(nods, sec)
+
+                    for sec in ray.getPointAtT(ray.getTwhereZ(gridz)):
+                        if gridx[-1] >= sec.getXYZ()[1,0] >= gridx[0] and gridy[-1] >= sec.getXYZ()[0,0] >= gridy[0] and gridz[-1] >= sec.getXYZ()[2,0] >= locxyz[2,0]:
+                            nods = np.append(nods, sec)
 
 
-                    row = np.array([[sta.id, sat.prn, elevAz[1], elevAz[0], swd]])
 
-                    matrix = np.append(matrix, row, axis=0)
+                    #print(nods)
+
+                    if nods[-1].getXYZ()[2,0] == 12000.0:
+
+
+                        d = np.empty((0,))
+                        dsum = np.empty((0,))
+                        first = True
+
+
+                        for n in nods:
+
+
+                            if not first:
+                                d = np.append(d, nods[0].dist(n) - dsum[-1])
+                            else:
+                                d = np.append(d, [0])
+                                first = False
+                            dsum = np.append(dsum, nods[0].dist(n))
+
+
+                            x = np.append(x, n.getXYZ()[1,0])
+                            y = np.append(y, n.getXYZ()[0,0])
+                            z = np.append(z, n.getXYZ()[2,0])
+
+                        nods = np.append([nods], [dsum], axis=0)
+                        nods = np.append(nods, [d], axis=0).T
+                        nods = nods[np.argsort(nods[:, 1])]
+
+                        first = True
+                        midPoints = np.empty((0,))
+
+                        for n in nods:
+                            now = n[0].getXYZ()
+                            if not first:
+                                midp = (last + now)/2
+
+                                for i in range(0,cellX):
+                                    if gridx[i] < midp[1,0] < gridx[i+1]:
+                                        cx = i
+
+                                for i in range(0,cellY):
+                                    if gridy[i] < midp[0,0] < gridy[i+1]:
+                                        cy = i
+                                for i in range(0,cellZ):
+                                    if gridz[i] < midp[2,0] < gridz[i+1]:
+                                        cz = i
+
+                                midPoints = np.append(midPoints, point.Point(coord=np.array([cx,cy,cz])))
+
+                            else:
+                                midPoints = np.append(midPoints, point.Point(coord=np.array([-1,-1,-1])))
+                                first = False
+                            last = now
+
+                        nods = np.append(nods.T, [midPoints], axis=0).T
+
+
+
+                        A_row = np.zeros((1,cellX*cellY*cellZ))
+
+                        for n in nods[1:,:]:
+                            mid = n[3].getXYZ()
+
+                            i = mid[1,0] + mid[0,0]*cellY + mid[2,0]*cellNum_level
+
+                            A_row[0,i] = n[2]
+
+
+
+                        A = np.append(A, A_row, axis=0)
+                        b = np.append(b, [[swd*10**6]], axis=0)
+
+
+
+
+                        #ax.scatter(locxyz[1,0], locxyz[0,0], locxyz[2,0])
+                        #ax.plot3D(x, y, z)
+                        #ax.set_xlim(gridx[0], gridx[-1])
+                        #ax.set_ylim(gridy[0], gridy[-1])
+                        #ax.set_zlim(gridz[0], gridz[-1])
+                        #ax.set_xlabel('X')
+                        #ax.set_ylabel('Y')
+                        #ax.set_zlabel('Z')
+
+
+
+                        row = np.array([[sta.id, sat.prn, elevAz[1], elevAz[0], swd]])
+
+                        matrix = np.append(matrix, row, axis=0)
 
 
 
@@ -92,6 +228,13 @@ for sta in network.getStations():
                 print(er)
     except KeyError as er:
         print(er)
+#plt.show()
 
-print(matrix)
-print(np.shape(matrix))
+#print(matrix)
+#print(np.shape(matrix))
+mart.mart(A, b, 100, A[0,:], 1)
+#print(A)
+#print(b)
+
+print(np.shape(A))
+#print(np.shape(b))
