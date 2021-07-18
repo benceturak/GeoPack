@@ -27,6 +27,8 @@ vmf1_grid = [source_dir+'VMFG_20201102.H00',source_dir+'VMFG_20201102.H06',sourc
 brdc_mixed = source_dir+'BRDC00WRD_S_20211840000_01D_MN.rnx'
 #epoch of the calculation
 ep = epoch.Epoch(np.array([2021,7,3,6,0,0]))
+tropo_ep = epoch.Epoch(np.array([2021,6,22,1,0,0]))#just for the test!!!!!!!!
+grid_ep = epoch.Epoch(np.array([2020,11,2,1,0,0]))#just for the test!!!!!!!!
 
 
 network = readcrd.ReadCRD(station_coords).network
@@ -46,8 +48,7 @@ for sat in brdc.getSatellites():
     network.addSatellite(sat)
 
 
-tropo_ep = epoch.Epoch(np.array([2021,6,22,1,0,0]))
-grid_ep = epoch.Epoch(np.array([2020,11,2,1,0,0]))
+
 
 matrix = np.empty((0,5))
 
@@ -71,14 +72,21 @@ cellY = len(gridy)-1
 cellZ = len(gridz)-1
 
 cellNum_level = cellX*cellY
-#import matplotlib.pyplot as plt
-#from mpl_toolkits.mplot3d import Axes3D
-#fig = plt.figure()
-#ax = fig.add_subplot(111, projection='3d')
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+fig = plt.figure()
+ax = fig.add_subplot(111, projection='3d')
+ax.set_xlim(gridx[0], gridx[-1])
+ax.set_ylim(gridy[0], gridy[-1])
+#ax.set_zlim(gridz[0], gridz[-1])
+ax.set_xlabel('X')
+ax.set_ylabel('Y')
+ax.set_zlabel('Z')
 
 
 A = np.empty((0,cellX*cellY*cellZ))
 b = np.empty((0,1))
+
 
 for sta in network.getStations():
 
@@ -90,10 +98,15 @@ for sta in network.getStations():
 
     try:
 
-        zwd = tropo.get_CORR_U(sta.id, tropo_ep)
+        #zwd = tropo.get_CORR_U(sta.id, tropo_ep)
 
-        grad_n = tropo.get_CORR_N(sta.id, tropo_ep)
-        grad_e = tropo.get_CORR_E(sta.id, tropo_ep)
+
+        #grad_n = tropo.get_CORR_N(sta.id, tropo_ep)
+        #grad_e = tropo.get_CORR_E(sta.id, tropo_ep)
+
+        zwd = grid.getA_w(sta, grid_ep)
+        grad_n = 0
+        grad_e = 0
 
         for sat in network.getSatellites():
             try:
@@ -102,7 +115,7 @@ for sta in network.getStations():
                 if elevAz[0] > 0:
 
 
-                    swd = mapping_function.slantDelay_w(zwd, sta, elevAz[1], elevAz[0], grad_n, grad_e, grid_ep)
+                    swd = mapping_function.slantDelay_w(zwd, sta, elevAz[1], elevAz[0], grid_ep, grad_n, grad_e)
 
                     ray = line.Line(loc, elevAz[1], elevAz[0])
                     #print(sta.getPLH()[0:2,0]*180/np.pi)
@@ -205,16 +218,13 @@ for sta in network.getStations():
                         b = np.append(b, [[swd*10**6]], axis=0)
 
 
+                        x = np.append(x[0], x[-1])
+                        y = np.append(y[0], y[-1])
+                        z = np.append(z[0], z[-1])
 
+                        ax.scatter(locxyz[1,0], locxyz[0,0], locxyz[2,0])
+                        ax.plot3D(x, y, z)
 
-                        #ax.scatter(locxyz[1,0], locxyz[0,0], locxyz[2,0])
-                        #ax.plot3D(x, y, z)
-                        #ax.set_xlim(gridx[0], gridx[-1])
-                        #ax.set_ylim(gridy[0], gridy[-1])
-                        #ax.set_zlim(gridz[0], gridz[-1])
-                        #ax.set_xlabel('X')
-                        #ax.set_ylabel('Y')
-                        #ax.set_zlabel('Z')
 
 
 
@@ -228,7 +238,7 @@ for sta in network.getStations():
                 print(er)
     except KeyError as er:
         print(er)
-#plt.show()
+plt.show()
 
 #print(matrix)
 #print(np.shape(matrix))

@@ -114,11 +114,11 @@ class VMF1(object):
         #der = -1.0/(sine+a_w/(sine+b_w/(c_w+sine)))**2*(a_w/(b_w/(c_w+1.0)+1.0)+1.0)*(cose-a_w*(cose-b_w*cose*1.0/(c_w+sine)**2)*1.0/(sine+b_w/(c_w+sine))**2)
 
         return der
-    def slantDelay_h(self, zd, st, alpha, e, grad_n, grad_e, ep):
+    def slantDelay_h(self, zd, st, alpha, e, ep, grad_n=0, grad_e=0):
 
         return self.fun_h(st, e, ep)*zd + grad_n*self.fun_h_der(st, e, ep)*np.cos(alpha) + grad_e*self.fun_h_der(st, e, ep)*np.sin(alpha)
 
-    def slantDelay_w(self, zd, st, alpha, e, grad_n, grad_e, ep):
+    def slantDelay_w(self, zd, st, alpha, e, ep, grad_n=0, grad_e=0):
 
         return self.fun_w(st, e, ep)*zd + zd*grad_n*self.fun_w_der(st, e, ep)*np.cos(alpha) + zd*grad_e*self.fun_w_der(st, e, ep)*np.sin(alpha)
 
