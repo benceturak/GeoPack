@@ -19,7 +19,7 @@ class GetLocal(object):
 
         return x(lat - self.min[0])
     def y(self, lon):
-        N = lambda phi: self.a/(1 - self.e**2*np.sin(phi)**2)**(-1/2)
+        N = lambda phi: self.a*(1 - self.e**2*np.sin(phi)**2)**(-1/2)
 
         mid_lat = (self.min[0] + self.max[0])/2
         y = lambda deltaLam: N(mid_lat)*np.cos(mid_lat)*deltaLam
@@ -33,7 +33,7 @@ class GetLocal(object):
         x = self.x(plh[0,0])
         y = self.y(plh[1,0])
         z = self.z(plh[2,0])
-        loc = np.array([y,x,z])
+        loc = np.array([x,y,z])
 
         if isinstance(p, point.Point):
             return point.Point(id=p.id, code=p.code, coord=loc)
