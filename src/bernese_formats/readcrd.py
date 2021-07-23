@@ -17,50 +17,56 @@ class ReadCRD(object):
 
         """
 
-        self.fileName = fileName#filename
+        #filename
+        self.fileName = fileName
+        #output Network object
         self.network = Network()
-        #self.comments = []#comment records
-        #self.navigationDatas = {}#navigation datas
-        #self.tauC = epoch.Epoch(np.array([0, 0, 0, 0, 0, 0]))
+
+        #try to open and read CRD file
         try:
+            #open CRD file
             self.fid = open(self.fileName, 'r')
             #start read of header
             self._readHeader()
             #start read of stations
             self._readBody()
         finally:
+            #close CRD file
             self.fid.close()
 
     def _readBody(self):
         """read CRD body
 
         """
+        #read next row
         line = self.fid.readline()
 
         #read stations row by row
         while line:
+            #if line is empty, break the while cycle
             if line.strip() == '':
                 break
 
-
+            #read the cols
+            #numerical Id of rows
             numId = line[0:3]
+            #station ID
             digit4Id = line[5:9]
+            #station dom ID
             dom = line[11:21]
+            #station coordinates
             x = float(line[22:36])
             y = float(line[37:51])
             z = float(line[52:66])
+            #station flag
             flag = line[68:]
 
+
+            #create a new Station object with the coordinates
             st = Station(id=digit4Id, code=numId, coord=np.array([[x,y,z]]),system=WGS84())
-
+            #add Station to the Network
             self.network.addStation(st)
-
-
-
-
-
-            #read satellite navigation datas in a valid epoch
-            #self._readEpochSatNav(line)
+            #read the next line
             line = self.fid.readline()
 
     def _readHeader(self):
@@ -72,7 +78,7 @@ class ReadCRD(object):
         for i in range(0,6):
 
             line = self.fid.readline()#read row
-            print(line)
+            #print(line)
             continue
 
             type = line[60:].replace("/","_").replace(":","_").replace("-","_").replace("#","").replace(",","").replace(" ","").replace("\n","")#replace special chars in title
