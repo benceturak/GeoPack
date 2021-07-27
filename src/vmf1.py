@@ -89,15 +89,8 @@ class VMF1(object):
         a_w = self.vmf1grid.getA_w(st, ep)
         b_w = self.b_w
         c_w = self.c_w
-        sine = np.sin(e)
-        cose = np.cos(e)
-        beta = b_w/(sine + c_w)
-        gamma = a_w/(sine + beta)
-        topcon = 1 + a_w/(1 + b_w/(1 + c_w))
-
-        ht = st.getPLH()[2,0]/1000
-
-        return topcon/(sine + gamma)
+        
+        return (1 + (a_w/(1 + b_w/(1 + c_w))))/(np.sin(e) + (a_w/(np.sin(e) + b_w/(np.sin(e) + c_w))))
 
     def fun_w_der(self, st, e, ep):
 

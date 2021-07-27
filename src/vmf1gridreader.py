@@ -213,7 +213,7 @@ class VMF1GridReader(object):
         else:
             raise epoch.TimeError('Invalid epoch (out of timeinterval)')
 
-    def getZd_h(self, st, ep):
+    def getZhd(self, st, ep):
         plh = st.getPLH()[:,0]
 
         i = np.where(np.abs(self.epochs - ep.MJD) <= 0.25)[0]
@@ -234,7 +234,7 @@ class VMF1GridReader(object):
         else:
             raise epoch.TimeError('Invalid epoch (out of timeinterval)')
 
-    def getZd_w(self, st, ep):
+    def getZwd(self, st, ep):
         plh = st.getPLH()[:,0]
 
         i = np.where(np.abs(self.epochs - ep.MJD) <= 0.25)[0]
@@ -251,7 +251,7 @@ class VMF1GridReader(object):
             t = self.epochs[i]
             v = np.append(f1(plh[0]*180/np.pi, plh[1]*180/np.pi), f2(plh[0]*180/np.pi, plh[1]*180/np.pi))
             f = interpolate.interp1d(t, v)
-            return f(ep.MJD)
+            return f(ep.MJD)*np.exp(-plh[2]/2000)
         else:
             raise epoch.TimeError('Invalid epoch (out of timeinterval)')
 
