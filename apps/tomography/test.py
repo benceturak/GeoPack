@@ -14,11 +14,12 @@ import point
 import mart
 import station
 from ellipsoid import WGS84
+from plotrefractivity import plotRefractivity
 
 source_dir = '../../data/tomography/'
 
 
-data = np.genfromtxt('adatok.csv', delimiter=',')
+data = np.genfromtxt(source_dir + 'proba.csv', delimiter=',')
 
 min = np.array([45.5*np.pi/180, 15.5*np.pi/180,    0])
 max = np.array([49.0*np.pi/180, 23.0*np.pi/180,12000])
@@ -50,27 +51,25 @@ b = np.empty((0,))
 
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
-fig = plt.figure()
-ax = fig.add_subplot(111, projection='3d')
-ax.set_xlim(gridx[0], gridx[-1])
-ax.set_ylim(gridy[0], gridy[-1])
-ax.set_zlim(gridz[0], gridz[-1])
-ax.set_xlabel('X')
-ax.set_ylabel('Y')
-ax.set_zlabel('Z')
-
-print(np.shape(data))
+#fig = plt.figure()
+#ax = fig.add_subplot(111, projection='3d')
+#ax.set_xlim(gridx[0], gridx[-1])
+#ax.set_ylim(gridy[0], gridy[-1])
+#ax.set_zlim(gridz[0], gridz[-1])
+#ax.set_xlabel('X')
+#ax.set_ylabel('Y')
+#ax.set_zlabel('Z')
 
 
 for row in data:
-    sta = station.Station(coord=np.array([row[0],row[1],row[2]]), type=1, system=WGS84())
+    sta = station.Station(coord=np.array([row[3]*np.pi/180,row[4]*np.pi/180,row[5]]), type=2, system=WGS84())
 
 
     loc = trafo2local.getLocalCoords(sta)
 
-    alpha = row[3]
-    elev = row[4]
-    swd = row[5]
+    alpha = row[6]*np.pi/180
+    elev = row[7]*np.pi/180
+    swd = row[10]
 
 
 
@@ -214,8 +213,8 @@ for row in data:
     #y = np.append(y[0], y[-1])
     #z = np.append(z[0], z[-1])
 
-    ax.scatter(locxyz[0,0], locxyz[1,0], locxyz[2,0])
-    ax.plot3D(x, y, z)
+    #ax.scatter(locxyz[0,0], locxyz[1,0], locxyz[2,0])
+    #ax.plot3D(x, y, z)
 
 
 
@@ -247,7 +246,7 @@ for row in data:
 
 
 
-plt.show()
+#plt.show()
 
 
 
@@ -275,8 +274,8 @@ x0 = np.append(x0, x06)
 x0 = x0.T
 
 R = np.random.permutation(450)
-#np.savetxt("A.csv", A, delimiter=",")
-#np.savetxt("b.csv", b, delimiter=",")
+np.savetxt("A.csv", A, delimiter=",")
+#np.savetxt("b.csv", b.T, delimiter=",")
 #A = A[R,:]
 #b = b[R]
 
@@ -284,4 +283,39 @@ R = np.random.permutation(450)
 print(np.shape(A))
 print(np.shape(b))
 
-mart.mart(A, b, 300, x0, 2.7/100)
+i = 0
+for c in A.T:
+    if np.all(c == 0):
+        print(i)
+    i = i+1
+
+#print(b)
+
+res = mart.mart(A, b, 300, x0, 2.7/100)
+
+print(res['x'])
+
+
+
+
+T = np.zeros((cellZ, cellY, cellX))
+
+for z in range(0,cellZ):
+    for y in range(0,cellY):
+        for x in range(0,cellX):
+            T[z,x,y] = res['x'][z*cellNum_level + y*cellY + x]
+
+
+#x = x['x'].reshape((cellZ, cellY, cellX))
+print(T[0,:,:])
+print(T[1,:,:])
+print(T[2,:,:])
+print(T[3,:,:])
+print(T[4,:,:])
+print(T[5,:,:])
+
+
+
+plotRefractivity(T)
+
+#print(np.shape(x))
