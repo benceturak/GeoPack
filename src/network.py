@@ -12,6 +12,10 @@ class Network(object):
     def getSatellites(self):
         for s in self.satellites:
             yield s
+    def getStationBy4digitId(self, id):
+        for s in self.stations:
+            if s.id == id:
+                return s
 
     def addStation(self, st):
         self.stations.append(st)
