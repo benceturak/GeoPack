@@ -54,7 +54,7 @@ class ReadTRP(object):
             hour = int(line[35:37])
             min = int(line[38:40])
             sec = int(line[41:43])
-            ep = epoch.Epoch(np.array([year,month,day,hour,min,sec]), epoch.GPS).MJD
+            ep = epoch.Epoch(np.array([year,month,day,hour,min,sec]), epoch.UTC).MJD
 
             #print(ep)
 
