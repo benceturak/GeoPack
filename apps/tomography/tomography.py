@@ -11,6 +11,8 @@ import line
 import point
 import mart
 from plotrefractivity import plotRefractivity
+from matrix2vector import matrix2vector
+from vector2matrix import vector2matrix
 
 def tomography(gridp, gridl, gridh, network, tropo, vmf1grid, mapping_function, initial_x, ep, constellation=('G','R','E')):
 
@@ -36,6 +38,8 @@ def tomography(gridp, gridl, gridh, network, tropo, vmf1grid, mapping_function, 
     cellY = len(gridy)-1
     cellZ = len(gridz)-1
 
+
+
     cellNum_level = cellX*cellY
 
 
@@ -54,6 +58,7 @@ def tomography(gridp, gridl, gridh, network, tropo, vmf1grid, mapping_function, 
         try:
 
             zwd = tropo.get_CORR_U(sta.id, ep)
+            zwd = zwd - 0.05
             if zwd <= 0:
                 continue
             grad_n = tropo.get_CORR_N(sta.id, ep)
@@ -63,6 +68,9 @@ def tomography(gridp, gridl, gridh, network, tropo, vmf1grid, mapping_function, 
             #grad_n = 0
             #grad_e = 0
 
+            if not(max[0] >= sta.getPLH()[0,0] >= min[0] and max[1] >= sta.getPLH()[1,0] >=  min[1] and  max[2] >= sta.getPLH()[2,0] >=  min[2]):
+                continue
+
             for sat in network.getSatellites():
                 skip_sat = True
                 for c in constellation:
@@ -70,10 +78,12 @@ def tomography(gridp, gridl, gridh, network, tropo, vmf1grid, mapping_function, 
                         skip_sat = False
                 if skip_sat:
                     continue
+
+
                 try:
                     elevAz = sat.getElevAzimuth(sta, ep)
 
-                    if elevAz[0]  < 20*np.pi/180:
+                    if elevAz[0]  < 10*np.pi/180:
                         continue
 
 
@@ -114,12 +124,12 @@ def tomography(gridp, gridl, gridh, network, tropo, vmf1grid, mapping_function, 
 
                         nods_temp = np.empty((0,))
 
-                        minx = gridx[0] - 1
-                        maxx = gridx[-1] +1
-                        miny = gridy[0] - 1
-                        maxy = gridy[-1] +1
-                        minz = locxyz[2,0] - 1
-                        maxz = gridz[-1] +1
+                        minx = gridx[0]# - 0.001
+                        maxx = gridx[-1]# +0.001
+                        miny = gridy[0]# - 0.001
+                        maxy = gridy[-1]# +0.001
+                        minz = locxyz[2,0]# - 0.001
+                        maxz = gridz[-1]# +0.001
 
 
 
@@ -199,17 +209,25 @@ def tomography(gridp, gridl, gridh, network, tropo, vmf1grid, mapping_function, 
 
 
 
+                        A_row_3D = np.zeros((cellX, cellY, cellZ))
+
                         for n in nods[1:,:]:
                             mid = n[3].getXYZ()
 
                             i = mid[0,0] + mid[1,0]*cellX + mid[2,0]*cellNum_level
 
-                            A_row[0,i] = n[2]
+                            #A_row[0,i] = n[2]
+
+                            A_row_3D[mid[0,0], mid[1,0], mid[2,0]] = n[2]
+
+
+
+                        A_row = matrix2vector(A_row_3D)
 
 
 
 
-                        A = np.append(A, A_row, axis=0)
+                        A = np.append(A, [A_row], axis=0)
                         b = np.append(b, [swd*10**6])
 
 
@@ -236,14 +254,14 @@ def tomography(gridp, gridl, gridh, network, tropo, vmf1grid, mapping_function, 
         except KeyError as er:
             pass
         except ValueError as er:
-            pass
+            print(er)
 
-    #np.savetxt("matlab.csv", matrix, delimiter=",")
-    np.savetxt("A5.csv", A, delimiter=",")
 
-    print(np.shape(A))
-    print(np.shape(b))
-    print(np.shape(initial_x))
+
+    np.savetxt("aaaa.csv", matrix, delimiter=",")
+    np.savetxt("A.csv", A, delimiter=",")
+    np.savetxt("b.csv", b, delimiter=",")
+
 
 
 
@@ -256,13 +274,13 @@ def tomography(gridp, gridl, gridh, network, tropo, vmf1grid, mapping_function, 
 
 
 
-    T = np.zeros((cellZ, cellX, cellY))
+    T = vector2matrix(res['x'], (cellX, cellY, cellZ))
 
 
-    for z in range(0,cellZ):
-        for y in range(0,cellY):
-            for x in range(0,cellX):
-                T[z,x,y] = res['x'][z*cellNum_level + y*cellX + x]
+    #for z in range(0,cellZ):
+    #    for y in range(0,cellY):
+    #        for x in range(0,cellX):
+    #            T[z,x,y] = res['x'][z*cellNum_level + y*cellX + x]
 
 
     #x = x['x'].reshape((cellZ, cellY, cellX))
@@ -272,7 +290,9 @@ def tomography(gridp, gridl, gridh, network, tropo, vmf1grid, mapping_function, 
     #print(T[3,:,:])
     #print(T[4,:,:])
     #print(T[5,:,:])
-
+    print(np.shape(A_row))
+    print(np.shape(A))
+    print('------------')
 
     return (T, res['x'])
 
