@@ -8,7 +8,6 @@ import matplotlib.pyplot as plt
 def refractivityProfile(names,profiles):
 
     fig, axs = plt.subplots()
-    print(profiles[0])
 
     for i in range(0, len(names)):
         name = names[i]
