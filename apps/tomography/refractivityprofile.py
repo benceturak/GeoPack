@@ -5,7 +5,7 @@ import epoch
 import numpy as np
 import matplotlib.pyplot as plt
 
-def refractivityProfile(names,profiles):
+def refractivityProfile(names,profiles, loc):
 
     fig, axs = plt.subplots()
 
@@ -15,7 +15,7 @@ def refractivityProfile(names,profiles):
 
         pcm = axs.plot(profile[:,1], profile[:,0], label=name)
 
-        axs.set(xlabel="Refractivity [-]", ylabel='height [m]', title='Refractivity Budapest')
+        axs.set(xlabel="Refractivity [-]", ylabel='height [m]', title='Refractivity '+loc)
     plt.legend()
     plt.show()
     #plt.savefig(fname)
