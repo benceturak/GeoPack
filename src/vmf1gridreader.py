@@ -197,7 +197,7 @@ class VMF1GridReader(object):
 
         i = np.where(np.abs(self.epochs - ep.MJD) <= 0.25)[0]
 
-        if len(i) == 1 and self.epochs == ep.MJD:
+        if len(i) == 1:# and self.epochs == ep.MJD:
             f = interpolate.interp2d(self.phi, self.lam, self.a_w[i[0],:,:])
             return f(plh[0]*180/np.pi, plh[1]*180/np.pi)
         elif len(i) == 2:
@@ -218,7 +218,7 @@ class VMF1GridReader(object):
 
         i = np.where(np.abs(self.epochs - ep.MJD) <= 0.25)[0]
 
-        if len(i) == 1 and self.epochs == ep.MJD:
+        if len(i) == 1:# and self.epochs == ep.MJD:
             f = interpolate.interp2d(self.phi, self.lam, self.zdh[i[0],:,:])
             return f(plh[0]*180/np.pi, plh[1]*180/np.pi)
         elif len(i) == 2:
@@ -239,7 +239,7 @@ class VMF1GridReader(object):
 
         i = np.where(np.abs(self.epochs - ep.MJD) <= 0.25)[0]
 
-        if len(i) == 1 and self.epochs == ep.MJD:
+        if len(i) == 1:# and self.epochs == ep.MJD:
             f = interpolate.interp2d(self.phi, self.lam, self.zdw[i[0],:,:])
             return f(plh[0]*180/np.pi, plh[1]*180/np.pi)
         elif len(i) == 2:

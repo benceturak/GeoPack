@@ -1,4 +1,5 @@
 import sys
+import os
 sys.path.append('../../src')
 sys.path.append('../../src/bernese_formats')
 import broadcastnavreader
@@ -58,7 +59,7 @@ def tomography(gridp, gridl, gridh, network, tropo, vmf1grid, mapping_function, 
         try:
 
             zwd = tropo.get_CORR_U(sta.id, ep)
-            zwd = zwd - 0.05
+            zwd = zwd
             if zwd <= 0:
                 continue
             grad_n = tropo.get_CORR_N(sta.id, ep)
@@ -72,20 +73,15 @@ def tomography(gridp, gridl, gridh, network, tropo, vmf1grid, mapping_function, 
                 continue
 
             for sat in network.getSatellites():
-                skip_sat = True
-                for c in constellation:
-                    if sat.prn[0] == c:
-                        skip_sat = False
-                if skip_sat:
-                    continue
 
+
+                if not sat.prn[0] in constellation:
+                    continue
 
                 try:
                     elevAz = sat.getElevAzimuth(sta, ep)
-
                     if elevAz[0]  < 10*np.pi/180:
                         continue
-
 
                     if elevAz[0] > 0:
 
@@ -250,17 +246,18 @@ def tomography(gridp, gridl, gridh, network, tropo, vmf1grid, mapping_function, 
 
                 except epoch.TimeError as er:
                     pass
-                    #print(er)
         except KeyError as er:
             pass
         except ValueError as er:
-            print(er)
+            pass
 
 
 
-    np.savetxt("aaaa.csv", matrix, delimiter=",")
-    np.savetxt("A.csv", A, delimiter=",")
-    np.savetxt("b.csv", b, delimiter=",")
+    #np.savetxt("aaaa.csv", matrix, delimiter=",")
+    #np.savetxt("A.csv", A, delimiter=",")
+    #np.savetxt("b.csv", b, delimiter=",")
+
+    
 
 
 

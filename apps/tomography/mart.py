@@ -15,8 +15,6 @@ def mart(A, b, maxIter, x0, tol):
         x2 = x
 
         err = np.abs((x2 - x1)/x2)
-        print(k)
-        print(np.max(err))
 
         #np.savetxt("err4.csv", [err], delimiter=",")
         if np.max(err) < tol:
