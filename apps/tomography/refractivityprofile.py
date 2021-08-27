@@ -9,12 +9,15 @@ def refractivityProfile(names,profiles, loc, fname):
 
     fig, axs = plt.subplots()
 
+    symbols = ['b--', 'r-', 'g-']
+
     for i in range(0, len(names)):
         name = names[i]
         profile = profiles[i]
-        pcm = axs.plot(profile[:,1], profile[:,0], label=name)
+        pcm = axs.plot(profile[:,1], profile[:,0], symbols[i], label=name)
 
         axs.set(xlabel="Refractivity [-]", ylabel='height [m]', title='Refractivity '+loc)
     plt.legend()
     #plt.show()
     plt.savefig(fname)
+    plt.close()

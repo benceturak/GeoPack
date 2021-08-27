@@ -14,3 +14,4 @@ def plotRefractivity(fname, ref, cols=2):
             axs[k,i].set(xlabel="lon", ylabel='lat', title=str(k*cols+i+1)+'. level ')
             fig.colorbar(pcm, ax=axs[k,i])
     plt.savefig(fname)
+    plt.close()
