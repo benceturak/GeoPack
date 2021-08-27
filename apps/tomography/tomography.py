@@ -15,7 +15,7 @@ from plotrefractivity import plotRefractivity
 from matrix2vector import matrix2vector
 from vector2matrix import vector2matrix
 
-def tomography(gridp, gridl, gridh, network, tropo, vmf1grid, mapping_function, initial_x, ep, constellation=('G','R','E')):
+def tomography(gridp, gridl, gridh, network, tropo, vmf1grid, mapping_function, ep, constellation=('G','R','E'), ignore_stations=[]):
 
 
 
@@ -47,8 +47,13 @@ def tomography(gridp, gridl, gridh, network, tropo, vmf1grid, mapping_function, 
     A = np.empty((0,cellX*cellY*cellZ))
     b = np.empty((0,))
 
+    stations = []
+
 
     for sta in network.getStations():
+
+        if sta.id in ignore_stations:
+            continue
 
         plh = sta.getPLH()
         #print(plh[0:2,0]*180/np.pi)
@@ -225,6 +230,7 @@ def tomography(gridp, gridl, gridh, network, tropo, vmf1grid, mapping_function, 
 
                         A = np.append(A, [A_row], axis=0)
                         b = np.append(b, [swd*10**6])
+                        stations.append(sta.id)
 
 
 
@@ -257,7 +263,6 @@ def tomography(gridp, gridl, gridh, network, tropo, vmf1grid, mapping_function, 
     #np.savetxt("A.csv", A, delimiter=",")
     #np.savetxt("b.csv", b, delimiter=",")
 
-    
 
 
 
@@ -265,33 +270,10 @@ def tomography(gridp, gridl, gridh, network, tropo, vmf1grid, mapping_function, 
 
 
 
-    res = mart.mart(A, b, 100000, initial_x, 2.7/100)
-
-    #np.savetxt("initial.csv", res['x'], delimiter=",")
 
 
 
-    T = vector2matrix(res['x'], (cellX, cellY, cellZ))
-
-
-    #for z in range(0,cellZ):
-    #    for y in range(0,cellY):
-    #        for x in range(0,cellX):
-    #            T[z,x,y] = res['x'][z*cellNum_level + y*cellX + x]
-
-
-    #x = x['x'].reshape((cellZ, cellY, cellX))
-    #print(T[0,:,:])
-    #print(T[1,:,:])
-    #print(T[2,:,:])
-    #print(T[3,:,:])
-    #print(T[4,:,:])
-    #print(T[5,:,:])
-    print(np.shape(A_row))
-    print(np.shape(A))
-    print('------------')
-
-    return (T, res['x'])
+    return (A, b, stations)
 
 
 

@@ -19,7 +19,4 @@ def mart(A, b, maxIter, x0, tol):
         #np.savetxt("err4.csv", [err], delimiter=",")
         if np.max(err) < tol:
             break
-    ret = {}
-    ret['x'] = x
-    ret['iter'] = iter
-    return ret
+    return (x, iter)

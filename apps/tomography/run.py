@@ -4,6 +4,7 @@ sys.path.append('../../src/bernese_formats')
 import broadcastnavreader
 import readcrd
 import readtrp
+import orographyreader
 import epoch
 import numpy as np
 import vmf1gridreader
@@ -18,6 +19,7 @@ import station
 from ellipsoid import WGS84
 from getprofilefromct import getProfileFromCT
 from refractivityprofile import refractivityProfile
+from plotregression import plotRegression
 
 RS = [
 ['Budapest','12843', station.Station(coord=np.array([47.43*np.pi/180,19.18*np.pi/180,139.0]), type=2, system=WGS84()), 'BP_1100.csv'],
@@ -48,7 +50,7 @@ x0_3D = np.load(source_dir+'initial.npy')
 
 
 
-eps = np.array([epoch.Epoch(np.array([2021,8,11,2,0,0]), epoch.UTC)])
+eps = np.array([epoch.Epoch(np.array([2021,8,11,0,0,0]), epoch.UTC)])
 dep = epoch.Epoch(np.array([0,0,0,1,0,0]))
 
 for i in range(0,5):
@@ -58,14 +60,15 @@ for i in range(0,5):
 #input files
 
 #station coordinate file CRD
-station_coords = source_dir+'SO21196A.CRD'
+station_coords = source_dir+'METEONET.CRD'
 #troposphere files
 
 
 #VMF1 grid file
 vmf1_grid = [source_dir+'GRD/VMFG_20210811.H00',source_dir+'GRD/VMFG_20210811.H06']#,source_dir+'GRD/VMFG_20210811.H12',source_dir+'GRD/VMFG_20210811.H18',source_dir+'GRD/VMFG_20210812.H00']
+orography_ell = source_dir+'orography_ell'
 #satellite broadcast files
-brdc_mixed = source_dir+'BRDC00WRD_S_20212230000_01D_MN.rnx'
+brdc_mixed = source_dir+'BRDC00WRD_R_20212230000_01D_MN.rnx'
 #epoch of the calculation
 
 network = readcrd.ReadCRD(station_coords).network
@@ -75,12 +78,18 @@ for sat in brdc.getSatellites():
     network.addSatellite(sat)
 
 
-grid = vmf1gridreader.VMF1GridReader(vmf1_grid)
+orography = orographyreader.OrographyReader(orography_ell)
+
+grid = vmf1gridreader.VMF1GridReader(vmf1_grid, orography)
 mapping_function = vmf1.VMF1(grid)
 
 x0_t = np.empty((0,))
 for i in range(0, np.shape(gridh)[0]-1):
     x0_t = np.append(x0_t, (gridh[i] + gridh[i+1])/2)
+
+cellX = len(gridp)-1
+cellY = len(gridl)-1
+cellZ = len(gridh)-1
 
 for ep in eps:
     c = code_letter[ep.UTC[3]]
@@ -94,17 +103,54 @@ for ep in eps:
     tropo = readtrp.ReadTRP(bernese_tropo)
 
     x0 = matrix2vector(x0_3D)
-    res = tomography(gridp, gridl, gridh, network, tropo, grid, mapping_function, x0, ep, ('G','R','E'))
-    T = res[0]
+    A, b, stations = tomography(gridp, gridl, gridh, network, tropo, grid, mapping_function, ep, ('G','R','E'), ('NAGY', 'KISS', 'OROS'))
 
-    np.save(filename+'.npy',res[0])
+
+
+
+
+    numOfRay = len(b)
+    R = np.random.permutation(numOfRay)
+    train_rate = int(numOfRay*0.8)
+
+    train_A = A[R[0:train_rate]]
+    train_b = b[R[0:train_rate]]
+
+    test_A = A[R[train_rate:]]
+    test_b = b[R[train_rate:]]
+
+
+
+
+
+    Nw_vec, iter_num = mart.mart(train_A, train_b, 3000, x0, 2.7/100)
+
+    stats_row = [[ep.UTC[3], len(b), iter_num]]
+    try:
+        stats = np.append(stats, stats_row, axis=0)
+    except:
+        stats = np.array(stats_row)
+
+    #np.savetxt(output_dir+constellations+"", res['x'], delimiter=",")
+
+
+
+    Nw_3D = vector2matrix(Nw_vec, (cellX, cellY, cellZ))
+
+
+
+    np.save(filename+'.npy',Nw_3D)
     #np.save(source_dir+'initial.npy', x0_3D )
     np.save(source_dir+'initial_'+c+'.npy', x0_3D )
 
 
 
-    plotRefractivity(filename+'.png', res[0])
+    plotRefractivity(filename+'.png', Nw_3D)
+    plotRegression(train_A, Nw_vec, train_b, stations, output_dir+constellations+"regression/regression_train_estimated_"+c+".png", "Regression train estimated:")
+    plotRegression(test_A, Nw_vec, test_b, stations, output_dir+constellations+"regression/regression_test_estimated_"+c+".png", "Regression test estimated:")
 
+    plotRegression(train_A, x0, train_b, stations, output_dir+constellations+"regression/regression_train_initial_"+c+".png", "Regression train initial:")
+    plotRegression(test_A, x0, test_b, stations, output_dir+constellations+"regression/regression_test_initial_"+c+".png", "Regression test initial:")
 
     for sonde in RS:
 
@@ -116,13 +162,15 @@ for ep in eps:
         rs = rs[np.where(rs[:,0] <= 10000)[0],:]
         rs = rs[:,[0,1]]
 
-        tomo_profile = getProfileFromCT(res[0], gridp, gridl, sta)
+        tomo_profile = getProfileFromCT(Nw_3D, gridp, gridl, sta, 'bilinear')
 
         initial_profile = getProfileFromCT(x0_3D, gridp, gridl, sta)
+
+
 
         tomo = np.append([x0_t], [tomo_profile], axis=0).T
         initial = np.append([x0_t], [initial_profile], axis=0).T
 
         refractivityProfile(('Initial', 'Tomography', 'Radiosonde'), (initial, tomo, rs), sonde[0], output_dir+constellations+'profile_'+sonde[0]+'_'+c+'.png')
-
+np.savetxt(output_dir+constellations+"stats.csv", stats, delimiter=",")
     #x0_3D = res[0]
