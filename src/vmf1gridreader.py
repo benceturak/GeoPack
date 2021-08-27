@@ -14,12 +14,13 @@ class VMF1GridReader(object):
             :param fileName: name of VMF1 file (string)
     """
 
-    def __init__(self, fileNames):
+    def __init__(self, fileNames, oro):
         """VMF1GridReader constructor
 
         """
 
         self.fileNames = fileNames#filename
+        self.oro = oro
 
         self.grid = np.empty((0,))
         self.phi = 0
@@ -241,7 +242,7 @@ class VMF1GridReader(object):
 
         if len(i) == 1:# and self.epochs == ep.MJD:
             f = interpolate.interp2d(self.phi, self.lam, self.zdw[i[0],:,:])
-            return f(plh[0]*180/np.pi, plh[1]*180/np.pi)
+            return f(plh[0]*180/np.pi, plh[1]*180/np.pi)*np.exp(-(plh[2] - self.oro.getOro(st))/2000)
         elif len(i) == 2:
 
             f1 = interpolate.interp2d(self.phi, self.lam, self.zdw[i[0],:,:])
@@ -251,7 +252,7 @@ class VMF1GridReader(object):
             t = self.epochs[i]
             v = np.append(f1(plh[0]*180/np.pi, plh[1]*180/np.pi), f2(plh[0]*180/np.pi, plh[1]*180/np.pi))
             f = interpolate.interp1d(t, v)
-            return f(ep.MJD)*np.exp(-plh[2]/2000)
+            return f(ep.MJD)*np.exp(-(plh[2] - self.oro.getOro(st))/2000)
         else:
             raise epoch.TimeError('Invalid epoch (out of timeinterval)')
 
