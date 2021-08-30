@@ -7,6 +7,7 @@ import readtrp
 import orographyreader
 import epoch
 import numpy as np
+from scipy import stats
 import vmf1gridreader
 import vmf1
 import mart
@@ -35,7 +36,7 @@ output_dir = '../../data/tomography/2021/result/'
 
 
 
-constellations = 'TRP/'
+constellations = 'TRPGPS/'
 
 output_file = constellations+'CT_'
 
@@ -97,13 +98,13 @@ for ep in eps:
     print(filename)
 
 
-    bernese_tropo = source_dir+constellations+'CO21223'+c+'.TRP'
+    bernese_tropo = source_dir+constellations+'CG21223'+c+'.TRP'
 
 
     tropo = readtrp.ReadTRP(bernese_tropo)
 
     x0 = matrix2vector(x0_3D)
-    A, b, stations = tomography(gridp, gridl, gridh, network, tropo, grid, mapping_function, ep, ('G','R','E'), ('NAGY', 'KISS', 'OROS'))
+    A, b, stations = tomography(gridp, gridl, gridh, network, tropo, grid, mapping_function, ep, ('G',), ())
 
 
 
@@ -122,14 +123,55 @@ for ep in eps:
 
 
 
+    while True:
+        Nw_vec, iter_num = mart.mart(train_A, train_b, 3000, x0, 2.7/100)
 
-    Nw_vec, iter_num = mart.mart(train_A, train_b, 3000, x0, 2.7/100)
+        train_b_est = np.dot(train_A, Nw_vec)*10**-6
 
-    stats_row = [[ep.UTC[3], len(b), iter_num]]
+
+        m, section, r, p, se = stats.linregress(train_b*10**-6, train_b_est)
+
+        regline = lambda x: m*x + section
+
+        diff = train_b_est - regline(train_b*10**-6)
+
+        sigma = float(np.std(diff))
+
+        numOfRay = len(train_b_est)
+
+        print(np.shape(train_A))
+
+        indeces = np.where(np.abs(diff) < 3*np.std(diff))[0]
+        train_A = train_A[indeces,:]
+        print(np.shape(train_A))
+        train_b = train_b[indeces]
+
+        train_b_est = train_b_est[indeces]
+        #stations = stations[np.where(np.abs(diff) < 3*np.std(diff))]
+        print(sigma*3)
+        print(diff[np.where(np.abs(diff) > 3*np.std(diff))[0]])
+
+        if numOfRay == len(train_b_est):
+            break
+
+    test_b_est = np.dot(test_A, Nw_vec)*10**-6
+
+    train_b_init = np.dot(train_A, x0)*10**-6
+    test_b_init = np.dot(test_A, x0)*10**-6
+
+
+    plotRegression(train_b_est, train_b*10**-6, output_dir+constellations+"regression/regression_train_estimated_"+c+".png", "Regression train estimated:", sigma)
+    plotRegression(test_b_est, test_b*10**-6, output_dir+constellations+"regression/regression_test_estimated_"+c+".png", "Regression test estimated:")
+
+    plotRegression(train_b_init, train_b*10**-6, output_dir+constellations+"regression/regression_train_initial_"+c+".png", "Regression train initial:")
+    plotRegression(test_b_init, test_b*10**-6, output_dir+constellations+"regression/regression_test_initial_"+c+".png", "Regression test initial:")
+
+
+    stats_row = [[ep.UTC[3], len(b), int(len(b)*0.8), numOfRay, sigma, iter_num]]
     try:
-        stats = np.append(stats, stats_row, axis=0)
+        statistic = np.append(statistic, stats_row, axis=0)
     except:
-        stats = np.array(stats_row)
+        statistic = np.array(stats_row)
 
     #np.savetxt(output_dir+constellations+"", res['x'], delimiter=",")
 
@@ -146,11 +188,7 @@ for ep in eps:
 
 
     plotRefractivity(filename+'.png', Nw_3D)
-    plotRegression(train_A, Nw_vec, train_b, stations, output_dir+constellations+"regression/regression_train_estimated_"+c+".png", "Regression train estimated:")
-    plotRegression(test_A, Nw_vec, test_b, stations, output_dir+constellations+"regression/regression_test_estimated_"+c+".png", "Regression test estimated:")
 
-    plotRegression(train_A, x0, train_b, stations, output_dir+constellations+"regression/regression_train_initial_"+c+".png", "Regression train initial:")
-    plotRegression(test_A, x0, test_b, stations, output_dir+constellations+"regression/regression_test_initial_"+c+".png", "Regression test initial:")
 
     for sonde in RS:
 
@@ -172,5 +210,5 @@ for ep in eps:
         initial = np.append([x0_t], [initial_profile], axis=0).T
 
         refractivityProfile(('Initial', 'Tomography', 'Radiosonde'), (initial, tomo, rs), sonde[0], output_dir+constellations+'profile_'+sonde[0]+'_'+c+'.png')
-np.savetxt(output_dir+constellations+"stats.csv", stats, delimiter=",")
+np.savetxt(output_dir+constellations+"stats.csv", statistic, delimiter=",")
     #x0_3D = res[0]
