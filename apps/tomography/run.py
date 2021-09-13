@@ -23,9 +23,9 @@ from refractivityprofile import refractivityProfile
 from plotregression import plotRegression
 
 RS = [
-['Budapest','12843', station.Station(coord=np.array([47.43*np.pi/180,19.18*np.pi/180,139.0]), type=2, system=WGS84()), 'BP_1100.csv'],
-['Szeged', '12982', station.Station(coord=np.array([46.25*np.pi/180,20.10*np.pi/180,84.0]), type=2, system=WGS84()), 'SZ_1100.csv'],
-['Popgrad', '11952', station.Station(coord=np.array([49.03*np.pi/180,20.32*np.pi/180,701.0]), type=2, system=WGS84()), 'PO_1100.csv']]
+['Budapest','12843', station.Station(coord=np.array([47.43*np.pi/180,19.18*np.pi/180,139.0]), type=2, system=WGS84()), 'BP_1112.csv'],
+['Szeged', '12982', station.Station(coord=np.array([46.25*np.pi/180,20.10*np.pi/180,84.0]), type=2, system=WGS84()), 'SZ_1112.csv'],
+['Popgrad', '11952', station.Station(coord=np.array([49.03*np.pi/180,20.32*np.pi/180,701.0]), type=2, system=WGS84()), 'PO_1112.csv']]
 
 
 
@@ -51,7 +51,7 @@ x0_3D = np.load(source_dir+'initial.npy')
 
 
 
-eps = np.array([epoch.Epoch(np.array([2021,8,11,0,0,0]), epoch.UTC)])
+eps = np.array([epoch.Epoch(np.array([2021,8,11,6,0,0]), epoch.UTC)])
 dep = epoch.Epoch(np.array([0,0,0,1,0,0]))
 
 for i in range(0,5):
@@ -66,7 +66,7 @@ station_coords = source_dir+'METEONET.CRD'
 
 
 #VMF1 grid file
-vmf1_grid = [source_dir+'GRD/VMFG_20210811.H00',source_dir+'GRD/VMFG_20210811.H06']#,source_dir+'GRD/VMFG_20210811.H12',source_dir+'GRD/VMFG_20210811.H18',source_dir+'GRD/VMFG_20210812.H00']
+vmf1_grid = [source_dir+'GRD/VMFG_20210811.H00',source_dir+'GRD/VMFG_20210811.H06',source_dir+'GRD/VMFG_20210811.H12',source_dir+'GRD/VMFG_20210811.H18',source_dir+'GRD/VMFG_20210812.H00']
 orography_ell = source_dir+'orography_ell'
 #satellite broadcast files
 brdc_mixed = source_dir+'BRDC00WRD_R_20212230000_01D_MN.rnx'
@@ -210,5 +210,5 @@ for ep in eps:
         initial = np.append([x0_t], [initial_profile], axis=0).T
 
         refractivityProfile(('Initial', 'Tomography', 'Radiosonde'), (initial, tomo, rs), sonde[0], output_dir+constellations+'profile_'+sonde[0]+'_'+c+'.png')
-np.savetxt(output_dir+constellations+"stats.csv", statistic, delimiter=",")
+np.savetxt(output_dir+constellations+"stats"+c+".csv", statistic, delimiter=",")
     #x0_3D = res[0]

@@ -22,7 +22,7 @@ def plotRegression(b_est, b, fname, title, sigma=None):
 
     axs.plot(b, b_est, 'b*', label='Data')
     axs.plot((b_min, b_max), (Y_min, Y_max), 'r-', label='Fit')
-    axs.plot((b_min, b_max), (b_min, b_max), 'k--', linewidth=1, label='input = estimated')
+    axs.plot((b_min, b_max), (b_min, b_max), 'k--', linewidth=1, label='Y = X')
     if sigma != None:
         sig3_max_interval_min = m*b_min + c + 3*sigma
         sig3_max_interval_max = m*b_max + c + 3*sigma
@@ -54,7 +54,7 @@ def plotRegression(b_est, b, fname, title, sigma=None):
 
     axs.axis([b_min, b_max, b_min, b_max])
 
-    axs.set(xlabel="ZWD [m]", ylabel=equation, title=title + ' R = {0:.5f}'.format(r))
+    axs.set(xlabel="SWD [m]", ylabel=equation, title=title + ' R = {0:.5f}'.format(r))
 
     #plt.show()
     plt.savefig(fname)
