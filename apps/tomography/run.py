@@ -104,7 +104,7 @@ for ep in eps:
     tropo = readtrp.ReadTRP(bernese_tropo)
 
     x0 = matrix2vector(x0_3D)
-    A, b, stations = tomography(gridp, gridl, gridh, network, tropo, grid, mapping_function, ep, ('G',), ())
+    A, b, stations = tomography(gridp, gridl, gridh, network, tropo, mapping_function, ep, ('G',), ())
 
 
 

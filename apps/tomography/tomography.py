@@ -15,7 +15,7 @@ from plotrefractivity import plotRefractivity
 from matrix2vector import matrix2vector
 from vector2matrix import vector2matrix
 
-def tomography(gridp, gridl, gridh, network, tropo, vmf1grid, mapping_function, ep, constellation=('G','R','E'), ignore_stations=[]):
+def tomography(gridp, gridl, gridh, network, tropo, mapping_function, ep, constellation=('G','R','E'), ignore_stations=[]):
 
 
 
