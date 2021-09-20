@@ -59,12 +59,9 @@ def tomography(gridp, gridl, gridh, network, tropo, mapping_function, ep, conste
         #print(plh[0:2,0]*180/np.pi)
 
         loc = trafo2local.getLocalCoords(sta)
-
-
         try:
 
             zwd = tropo.get_CORR_U(sta.id, ep)
-            zwd = zwd
             if zwd <= 0:
                 continue
             grad_n = tropo.get_CORR_N(sta.id, ep)
@@ -249,14 +246,12 @@ def tomography(gridp, gridl, gridh, network, tropo, mapping_function, ep, conste
                         matrix = np.append(matrix, row, axis=0)
 
 
-
                 except epoch.TimeError as er:
-                    pass
+                    print(er)
         except KeyError as er:
             pass
         except ValueError as er:
             pass
-
 
 
     #np.savetxt("aaaa.csv", matrix, delimiter=",")

@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy import stats
 
-def plotRegression(b_est, b, fname, title, sigma=None):
+def plotRegression(b_est, b, fname, title, ep, sigma=None):
 
 
     m, c, r, p, se = stats.linregress(b, b_est)
@@ -54,7 +54,7 @@ def plotRegression(b_est, b, fname, title, sigma=None):
 
     axs.axis([b_min, b_max, b_min, b_max])
 
-    axs.set(xlabel="SWD [m]", ylabel=equation, title=title + ' R = {0:.5f}'.format(r))
+    axs.set(xlabel="SWD [m]", ylabel=equation, title=title + ' R = {0:.5f}'.format(r) + ' ('+str(ep)+')')
 
     #plt.show()
     plt.savefig(fname)

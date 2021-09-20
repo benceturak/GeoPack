@@ -23,9 +23,89 @@ from refractivityprofile import refractivityProfile
 from plotregression import plotRegression
 
 RS = [
-['Budapest','12843', station.Station(coord=np.array([47.43*np.pi/180,19.18*np.pi/180,139.0]), type=2, system=WGS84()), 'BP_1112.csv'],
+[['Budapest','12843', station.Station(coord=np.array([47.43*np.pi/180,19.18*np.pi/180,139.0]), type=2, system=WGS84()), 'BP_1100.csv'],
+['Szeged', '12982', station.Station(coord=np.array([46.25*np.pi/180,20.10*np.pi/180,84.0]), type=2, system=WGS84()), 'SZ_1100.csv'],
+['Popgrad', '11952', station.Station(coord=np.array([49.03*np.pi/180,20.32*np.pi/180,701.0]), type=2, system=WGS84()), 'PO_1100.csv']],
+[['Budapest','12843', station.Station(coord=np.array([47.43*np.pi/180,19.18*np.pi/180,139.0]), type=2, system=WGS84()), 'BP_1100.csv'],
+['Szeged', '12982', station.Station(coord=np.array([46.25*np.pi/180,20.10*np.pi/180,84.0]), type=2, system=WGS84()), 'SZ_1100.csv'],
+['Popgrad', '11952', station.Station(coord=np.array([49.03*np.pi/180,20.32*np.pi/180,701.0]), type=2, system=WGS84()), 'PO_1100.csv']],
+[['Budapest','12843', station.Station(coord=np.array([47.43*np.pi/180,19.18*np.pi/180,139.0]), type=2, system=WGS84()), 'BP_1100.csv'],
+['Szeged', '12982', station.Station(coord=np.array([46.25*np.pi/180,20.10*np.pi/180,84.0]), type=2, system=WGS84()), 'SZ_1100.csv'],
+['Popgrad', '11952', station.Station(coord=np.array([49.03*np.pi/180,20.32*np.pi/180,701.0]), type=2, system=WGS84()), 'PO_1100.csv']],
+[['Budapest','12843', station.Station(coord=np.array([47.43*np.pi/180,19.18*np.pi/180,139.0]), type=2, system=WGS84()), 'BP_1100.csv'],
+['Szeged', '12982', station.Station(coord=np.array([46.25*np.pi/180,20.10*np.pi/180,84.0]), type=2, system=WGS84()), 'SZ_1100.csv'],
+['Popgrad', '11952', station.Station(coord=np.array([49.03*np.pi/180,20.32*np.pi/180,701.0]), type=2, system=WGS84()), 'PO_1100.csv']],
+[['Budapest','12843', station.Station(coord=np.array([47.43*np.pi/180,19.18*np.pi/180,139.0]), type=2, system=WGS84()), 'BP_1100.csv'],
+['Szeged', '12982', station.Station(coord=np.array([46.25*np.pi/180,20.10*np.pi/180,84.0]), type=2, system=WGS84()), 'SZ_1100.csv'],
+['Popgrad', '11952', station.Station(coord=np.array([49.03*np.pi/180,20.32*np.pi/180,701.0]), type=2, system=WGS84()), 'PO_1100.csv']],
+[['Budapest','12843', station.Station(coord=np.array([47.43*np.pi/180,19.18*np.pi/180,139.0]), type=2, system=WGS84()), 'BP_1100.csv'],
+['Szeged', '12982', station.Station(coord=np.array([46.25*np.pi/180,20.10*np.pi/180,84.0]), type=2, system=WGS84()), 'SZ_1100.csv'],
+['Popgrad', '11952', station.Station(coord=np.array([49.03*np.pi/180,20.32*np.pi/180,701.0]), type=2, system=WGS84()), 'PO_1100.csv']],
+[['Budapest','12843', station.Station(coord=np.array([47.43*np.pi/180,19.18*np.pi/180,139.0]), type=2, system=WGS84()), 'BP_1100.csv'],
+['Szeged', '12982', station.Station(coord=np.array([46.25*np.pi/180,20.10*np.pi/180,84.0]), type=2, system=WGS84()), 'SZ_1100.csv'],
+['Popgrad', '11952', station.Station(coord=np.array([49.03*np.pi/180,20.32*np.pi/180,701.0]), type=2, system=WGS84()), 'PO_1100.csv']],
+[['Budapest','12843', station.Station(coord=np.array([47.43*np.pi/180,19.18*np.pi/180,139.0]), type=2, system=WGS84()), 'BP_1112.csv'],
 ['Szeged', '12982', station.Station(coord=np.array([46.25*np.pi/180,20.10*np.pi/180,84.0]), type=2, system=WGS84()), 'SZ_1112.csv'],
-['Popgrad', '11952', station.Station(coord=np.array([49.03*np.pi/180,20.32*np.pi/180,701.0]), type=2, system=WGS84()), 'PO_1112.csv']]
+['Popgrad', '11952', station.Station(coord=np.array([49.03*np.pi/180,20.32*np.pi/180,701.0]), type=2, system=WGS84()), 'PO_1112.csv']],
+[['Budapest','12843', station.Station(coord=np.array([47.43*np.pi/180,19.18*np.pi/180,139.0]), type=2, system=WGS84()), 'BP_1112.csv'],
+['Szeged', '12982', station.Station(coord=np.array([46.25*np.pi/180,20.10*np.pi/180,84.0]), type=2, system=WGS84()), 'SZ_1112.csv'],
+['Popgrad', '11952', station.Station(coord=np.array([49.03*np.pi/180,20.32*np.pi/180,701.0]), type=2, system=WGS84()), 'PO_1112.csv']],
+[['Budapest','12843', station.Station(coord=np.array([47.43*np.pi/180,19.18*np.pi/180,139.0]), type=2, system=WGS84()), 'BP_1112.csv'],
+['Szeged', '12982', station.Station(coord=np.array([46.25*np.pi/180,20.10*np.pi/180,84.0]), type=2, system=WGS84()), 'SZ_1112.csv'],
+['Popgrad', '11952', station.Station(coord=np.array([49.03*np.pi/180,20.32*np.pi/180,701.0]), type=2, system=WGS84()), 'PO_1112.csv']],
+[['Budapest','12843', station.Station(coord=np.array([47.43*np.pi/180,19.18*np.pi/180,139.0]), type=2, system=WGS84()), 'BP_1112.csv'],
+['Szeged', '12982', station.Station(coord=np.array([46.25*np.pi/180,20.10*np.pi/180,84.0]), type=2, system=WGS84()), 'SZ_1112.csv'],
+['Popgrad', '11952', station.Station(coord=np.array([49.03*np.pi/180,20.32*np.pi/180,701.0]), type=2, system=WGS84()), 'PO_1112.csv']],
+[['Budapest','12843', station.Station(coord=np.array([47.43*np.pi/180,19.18*np.pi/180,139.0]), type=2, system=WGS84()), 'BP_1112.csv'],
+['Szeged', '12982', station.Station(coord=np.array([46.25*np.pi/180,20.10*np.pi/180,84.0]), type=2, system=WGS84()), 'SZ_1112.csv'],
+['Popgrad', '11952', station.Station(coord=np.array([49.03*np.pi/180,20.32*np.pi/180,701.0]), type=2, system=WGS84()), 'PO_1112.csv']],
+[['Budapest','12843', station.Station(coord=np.array([47.43*np.pi/180,19.18*np.pi/180,139.0]), type=2, system=WGS84()), 'BP_1112.csv'],
+['Szeged', '12982', station.Station(coord=np.array([46.25*np.pi/180,20.10*np.pi/180,84.0]), type=2, system=WGS84()), 'SZ_1112.csv'],
+['Popgrad', '11952', station.Station(coord=np.array([49.03*np.pi/180,20.32*np.pi/180,701.0]), type=2, system=WGS84()), 'PO_1112.csv']],
+[['Budapest','12843', station.Station(coord=np.array([47.43*np.pi/180,19.18*np.pi/180,139.0]), type=2, system=WGS84()), 'BP_1112.csv'],
+['Szeged', '12982', station.Station(coord=np.array([46.25*np.pi/180,20.10*np.pi/180,84.0]), type=2, system=WGS84()), 'SZ_1112.csv'],
+['Popgrad', '11952', station.Station(coord=np.array([49.03*np.pi/180,20.32*np.pi/180,701.0]), type=2, system=WGS84()), 'PO_1112.csv']],
+[['Budapest','12843', station.Station(coord=np.array([47.43*np.pi/180,19.18*np.pi/180,139.0]), type=2, system=WGS84()), 'BP_1112.csv'],
+['Szeged', '12982', station.Station(coord=np.array([46.25*np.pi/180,20.10*np.pi/180,84.0]), type=2, system=WGS84()), 'SZ_1112.csv'],
+['Popgrad', '11952', station.Station(coord=np.array([49.03*np.pi/180,20.32*np.pi/180,701.0]), type=2, system=WGS84()), 'PO_1112.csv']],
+[['Budapest','12843', station.Station(coord=np.array([47.43*np.pi/180,19.18*np.pi/180,139.0]), type=2, system=WGS84()), 'BP_1112.csv'],
+['Szeged', '12982', station.Station(coord=np.array([46.25*np.pi/180,20.10*np.pi/180,84.0]), type=2, system=WGS84()), 'SZ_1112.csv'],
+['Popgrad', '11952', station.Station(coord=np.array([49.03*np.pi/180,20.32*np.pi/180,701.0]), type=2, system=WGS84()), 'PO_1112.csv']],
+[['Budapest','12843', station.Station(coord=np.array([47.43*np.pi/180,19.18*np.pi/180,139.0]), type=2, system=WGS84()), 'BP_1112.csv'],
+['Szeged', '12982', station.Station(coord=np.array([46.25*np.pi/180,20.10*np.pi/180,84.0]), type=2, system=WGS84()), 'SZ_1112.csv'],
+['Popgrad', '11952', station.Station(coord=np.array([49.03*np.pi/180,20.32*np.pi/180,701.0]), type=2, system=WGS84()), 'PO_1112.csv']],
+[['Budapest','12843', station.Station(coord=np.array([47.43*np.pi/180,19.18*np.pi/180,139.0]), type=2, system=WGS84()), 'BP_1112.csv'],
+['Szeged', '12982', station.Station(coord=np.array([46.25*np.pi/180,20.10*np.pi/180,84.0]), type=2, system=WGS84()), 'SZ_1112.csv'],
+['Popgrad', '11952', station.Station(coord=np.array([49.03*np.pi/180,20.32*np.pi/180,701.0]), type=2, system=WGS84()), 'PO_1112.csv']],
+[['Budapest','12843', station.Station(coord=np.array([47.43*np.pi/180,19.18*np.pi/180,139.0]), type=2, system=WGS84()), 'BP_1112.csv'],
+['Szeged', '12982', station.Station(coord=np.array([46.25*np.pi/180,20.10*np.pi/180,84.0]), type=2, system=WGS84()), 'SZ_1112.csv'],
+['Popgrad', '11952', station.Station(coord=np.array([49.03*np.pi/180,20.32*np.pi/180,701.0]), type=2, system=WGS84()), 'PO_1112.csv']],
+[['Budapest','12843', station.Station(coord=np.array([47.43*np.pi/180,19.18*np.pi/180,139.0]), type=2, system=WGS84()), 'BP_1200.csv'],
+['Szeged', '12982', station.Station(coord=np.array([46.25*np.pi/180,20.10*np.pi/180,84.0]), type=2, system=WGS84()), 'SZ_1200.csv'],
+['Popgrad', '11952', station.Station(coord=np.array([49.03*np.pi/180,20.32*np.pi/180,701.0]), type=2, system=WGS84()), 'PO_1200.csv']],
+[['Budapest','12843', station.Station(coord=np.array([47.43*np.pi/180,19.18*np.pi/180,139.0]), type=2, system=WGS84()), 'BP_1200.csv'],
+['Szeged', '12982', station.Station(coord=np.array([46.25*np.pi/180,20.10*np.pi/180,84.0]), type=2, system=WGS84()), 'SZ_1200.csv'],
+['Popgrad', '11952', station.Station(coord=np.array([49.03*np.pi/180,20.32*np.pi/180,701.0]), type=2, system=WGS84()), 'PO_1200.csv']],
+[['Budapest','12843', station.Station(coord=np.array([47.43*np.pi/180,19.18*np.pi/180,139.0]), type=2, system=WGS84()), 'BP_1200.csv'],
+['Szeged', '12982', station.Station(coord=np.array([46.25*np.pi/180,20.10*np.pi/180,84.0]), type=2, system=WGS84()), 'SZ_1200.csv'],
+['Popgrad', '11952', station.Station(coord=np.array([49.03*np.pi/180,20.32*np.pi/180,701.0]), type=2, system=WGS84()), 'PO_1200.csv']],
+[['Budapest','12843', station.Station(coord=np.array([47.43*np.pi/180,19.18*np.pi/180,139.0]), type=2, system=WGS84()), 'BP_1200.csv'],
+['Szeged', '12982', station.Station(coord=np.array([46.25*np.pi/180,20.10*np.pi/180,84.0]), type=2, system=WGS84()), 'SZ_1200.csv'],
+['Popgrad', '11952', station.Station(coord=np.array([49.03*np.pi/180,20.32*np.pi/180,701.0]), type=2, system=WGS84()), 'PO_1200.csv']],
+[['Budapest','12843', station.Station(coord=np.array([47.43*np.pi/180,19.18*np.pi/180,139.0]), type=2, system=WGS84()), 'BP_1200.csv'],
+['Szeged', '12982', station.Station(coord=np.array([46.25*np.pi/180,20.10*np.pi/180,84.0]), type=2, system=WGS84()), 'SZ_1200.csv'],
+['Popgrad', '11952', station.Station(coord=np.array([49.03*np.pi/180,20.32*np.pi/180,701.0]), type=2, system=WGS84()), 'PO_1200.csv']],
+[['Budapest','12843', station.Station(coord=np.array([47.43*np.pi/180,19.18*np.pi/180,139.0]), type=2, system=WGS84()), 'BP_1200.csv'],
+['Szeged', '12982', station.Station(coord=np.array([46.25*np.pi/180,20.10*np.pi/180,84.0]), type=2, system=WGS84()), 'SZ_1200.csv'],
+['Popgrad', '11952', station.Station(coord=np.array([49.03*np.pi/180,20.32*np.pi/180,701.0]), type=2, system=WGS84()), 'PO_1200.csv']],
+[['Budapest','12843', station.Station(coord=np.array([47.43*np.pi/180,19.18*np.pi/180,139.0]), type=2, system=WGS84()), 'BP_1200.csv'],
+['Szeged', '12982', station.Station(coord=np.array([46.25*np.pi/180,20.10*np.pi/180,84.0]), type=2, system=WGS84()), 'SZ_1200.csv'],
+['Popgrad', '11952', station.Station(coord=np.array([49.03*np.pi/180,20.32*np.pi/180,701.0]), type=2, system=WGS84()), 'PO_1200.csv']],
+[['Budapest','12843', station.Station(coord=np.array([47.43*np.pi/180,19.18*np.pi/180,139.0]), type=2, system=WGS84()), 'BP_1200.csv'],
+['Szeged', '12982', station.Station(coord=np.array([46.25*np.pi/180,20.10*np.pi/180,84.0]), type=2, system=WGS84()), 'SZ_1200.csv'],
+['Popgrad', '11952', station.Station(coord=np.array([49.03*np.pi/180,20.32*np.pi/180,701.0]), type=2, system=WGS84()), 'PO_1200.csv']]
+
+]
 
 
 
@@ -36,7 +116,7 @@ output_dir = '../../data/tomography/2021/result/'
 
 
 
-constellations = 'TRPGPS/'
+constellations = 'TRPGG/'
 
 output_file = constellations+'CT_'
 
@@ -51,10 +131,10 @@ x0_3D = np.load(source_dir+'initial.npy')
 
 
 
-eps = np.array([epoch.Epoch(np.array([2021,8,11,6,0,0]), epoch.UTC)])
+eps = np.array([epoch.Epoch(np.array([2021,8,11,0,0,0]), epoch.GPS)])
 dep = epoch.Epoch(np.array([0,0,0,1,0,0]))
 
-for i in range(0,5):
+for i in range(0,23):
     eps = np.append(eps, eps[-1]+dep)
 
 
@@ -93,18 +173,22 @@ cellY = len(gridl)-1
 cellZ = len(gridh)-1
 
 for ep in eps:
-    c = code_letter[ep.UTC[3]]
-    filename = output_dir+output_file+c
+    print(ep)
+    print(ep.GPS[3])
+    c = code_letter[ep.GPS[3]]
+    filename = output_dir+output_file+str(ep.DOY)+c
     print(filename)
 
 
-    bernese_tropo = source_dir+constellations+'CG21223'+c+'.TRP'
+    bernese_tropo = source_dir+constellations+'CR21'+str(ep.DOY)+c+'.TRP'
 
 
     tropo = readtrp.ReadTRP(bernese_tropo)
 
     x0 = matrix2vector(x0_3D)
-    A, b, stations = tomography(gridp, gridl, gridh, network, tropo, mapping_function, ep, ('G',), ())
+
+    A, b, stations = tomography(gridp, gridl, gridh, network, tropo, mapping_function, ep, ('G','R'), ())
+
 
 
 
@@ -160,11 +244,11 @@ for ep in eps:
     test_b_init = np.dot(test_A, x0)*10**-6
 
 
-    plotRegression(train_b_est, train_b*10**-6, output_dir+constellations+"regression/regression_train_estimated_"+c+".png", "Regression train estimated:", sigma)
-    plotRegression(test_b_est, test_b*10**-6, output_dir+constellations+"regression/regression_test_estimated_"+c+".png", "Regression test estimated:")
+    plotRegression(train_b_est, train_b*10**-6, output_dir+constellations+"regression/regression_train_estimated_"+str(ep.DOY)+c+".png", "Regression train estimated:", ep, sigma)
+    plotRegression(test_b_est, test_b*10**-6, output_dir+constellations+"regression/regression_test_estimated_"+str(ep.DOY)+c+".png", "Regression test estimated:", ep)
 
-    plotRegression(train_b_init, train_b*10**-6, output_dir+constellations+"regression/regression_train_initial_"+c+".png", "Regression train initial:")
-    plotRegression(test_b_init, test_b*10**-6, output_dir+constellations+"regression/regression_test_initial_"+c+".png", "Regression test initial:")
+    plotRegression(train_b_init, train_b*10**-6, output_dir+constellations+"regression/regression_train_initial_"+str(ep.DOY)+c+".png", "Regression train initial:", ep)
+    plotRegression(test_b_init, test_b*10**-6, output_dir+constellations+"regression/regression_test_initial_"+str(ep.DOY)+c+".png", "Regression test initial:", ep)
 
 
     stats_row = [[ep.UTC[3], len(b), int(len(b)*0.8), numOfRay, sigma, iter_num]]
@@ -187,10 +271,12 @@ for ep in eps:
 
 
 
-    plotRefractivity(filename+'.png', Nw_3D)
+    plotRefractivity(filename+'.png', Nw_3D, ep)
 
 
-    for sonde in RS:
+    for sonde in RS[ep.GPS[3]]:
+        print()
+        print(sonde[3])
 
 
         sta = sonde[2]
@@ -209,6 +295,6 @@ for ep in eps:
         tomo = np.append([x0_t], [tomo_profile], axis=0).T
         initial = np.append([x0_t], [initial_profile], axis=0).T
 
-        refractivityProfile(('Initial', 'Tomography', 'Radiosonde'), (initial, tomo, rs), sonde[0], output_dir+constellations+'profile_'+sonde[0]+'_'+c+'.png')
-np.savetxt(output_dir+constellations+"stats"+c+".csv", statistic, delimiter=",")
+        refractivityProfile(('Initial', 'Tomography', 'Radiosonde'), (initial, tomo, rs), sonde[0], output_dir+constellations+'profile_'+sonde[0]+'_'+str(ep.DOY)+c+'.png', ep)
+np.savetxt(output_dir+constellations+"stats.csv", statistic, delimiter=",")
     #x0_3D = res[0]
