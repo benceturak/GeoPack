@@ -179,7 +179,10 @@ class VMF1GridReader(object):
 
         if len(i) == 1 and self.epochs == ep.MJD:
             f = interpolate.interp2d(self.phi, self.lam, self.a_h[i[0],:,:])
-            return f(plh[0]*180/np.pi, plh[1]*180/np.pi)
+            return f(plh[0]*180/np.pi, plh[1]*180/np.pi)[0]
+        if len(i) == 3 and self.epochs == ep.MJD:
+            f = interpolate.interp2d(self.phi, self.lam, self.a_h[i[1],:,:])
+            return f(plh[0]*180/np.pi, plh[1]*180/np.pi)[0]
         elif len(i) == 2:
 
             f1 = interpolate.interp2d(self.phi, self.lam, self.a_h[i[0],:,:])
@@ -200,7 +203,10 @@ class VMF1GridReader(object):
 
         if len(i) == 1:# and self.epochs == ep.MJD:
             f = interpolate.interp2d(self.phi, self.lam, self.a_w[i[0],:,:])
-            return f(plh[0]*180/np.pi, plh[1]*180/np.pi)
+            return f(plh[0]*180/np.pi, plh[1]*180/np.pi)[0]
+        if len(i) == 3:# and self.epochs == ep.MJD:
+            f = interpolate.interp2d(self.phi, self.lam, self.a_w[i[1],:,:])
+            return f(plh[0]*180/np.pi, plh[1]*180/np.pi)[0]
         elif len(i) == 2:
 
             f1 = interpolate.interp2d(self.phi, self.lam, self.a_w[i[0],:,:])
@@ -221,7 +227,10 @@ class VMF1GridReader(object):
 
         if len(i) == 1:# and self.epochs == ep.MJD:
             f = interpolate.interp2d(self.phi, self.lam, self.zdh[i[0],:,:])
-            return f(plh[0]*180/np.pi, plh[1]*180/np.pi)
+            return f(plh[0]*180/np.pi, plh[1]*180/np.pi)[0]
+        if len(i) == 3:# and self.epochs == ep.MJD:
+            f = interpolate.interp2d(self.phi, self.lam, self.zdh[i[1],:,:])
+            return f(plh[0]*180/np.pi, plh[1]*180/np.pi)[0]
         elif len(i) == 2:
 
             f1 = interpolate.interp2d(self.phi, self.lam, self.zdh[i[0],:,:])
@@ -242,7 +251,10 @@ class VMF1GridReader(object):
 
         if len(i) == 1:# and self.epochs == ep.MJD:
             f = interpolate.interp2d(self.phi, self.lam, self.zdw[i[0],:,:])
-            return f(plh[0]*180/np.pi, plh[1]*180/np.pi)*np.exp(-(plh[2] - self.oro.getOro(st))/2000)
+            return f(plh[0]*180/np.pi, plh[1]*180/np.pi)[0]*np.exp(-(plh[2] - self.oro.getOro(st))/2000)
+        if len(i) == 3:# and self.epochs == ep.MJD:
+            f = interpolate.interp2d(self.phi, self.lam, self.zdw[i[1],:,:])
+            return f(plh[0]*180/np.pi, plh[1]*180/np.pi)[0]*np.exp(-(plh[2] - self.oro.getOro(st))/2000)
         elif len(i) == 2:
 
             f1 = interpolate.interp2d(self.phi, self.lam, self.zdw[i[0],:,:])
