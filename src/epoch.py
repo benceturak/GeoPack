@@ -19,6 +19,8 @@ class Epoch(object):
             :param system: time system GPS, UTC (int), default GPS
     """
 
+    months = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+
     def __init__(self, dt, system=GPS, downloadLeapSec=False):
         """Epoch constructor
 
@@ -62,11 +64,31 @@ class Epoch(object):
         """
         return int((math.floor(math.floor(self.MJD) - Epoch(np.array([1980,1,6,0,0,0])).MJD))%7)
 
+    @property
+    def DOY(self):
+        """get day of year
+            :return: DOY (int)
+        """
+        DOY = 0
+        for i in range(0,self.dt[1]-1):
+            DOY = DOY + self.months[i]
+
+        if self.dt[0] % 4 == 0 and m == 1:#leap year, february
+            DOY = DOY + 1
+        DOY = DOY + self.dt[2]
+
+        return DOY
+
+
+
 
     @property
     def UTC(self):
         ls = LeapSecs().getLeapSecsAt(self)
         return (self - ls).dt
+    @property
+    def GPS(self):
+        return self.dt
 
     @property
     def MJD(self):
@@ -84,7 +106,6 @@ class Epoch(object):
         """normalize date when a value out of range
 
         """
-        months = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
 
         #seconds
         while self.dt[5] > 59:
@@ -116,7 +137,7 @@ class Epoch(object):
         while m < 0:
             m += 12
 
-        daysOfMonth = months[m-1]
+        daysOfMonth = self.months[m-1]
 
         if self.dt[0] % 4 == 0 and m == 1:#leap year, february
             daysOfMonth += 1
@@ -180,8 +201,12 @@ class Epoch(object):
         return re
 
     def __repr__(self):
+
         return '[{0:d}, {1:d}, {2:d}, {3:d}, {4:d}, {5:.5f}]'.format(int(self.dt[0]), int(self.dt[1]), int(self.dt[2]), int(self.dt[3]), int(self.dt[4]), self.dt[5])
 
+    def __str__(self):
+
+        return '{0:d}-{1:02d}-{2:02d} {3:02d}:{4:02d}:{5:05.2f}'.format(int(self.dt[0]), int(self.dt[1]), int(self.dt[2]), int(self.dt[3]), int(self.dt[4]), self.dt[5])
 class LeapSecs(object):
     """
         LeapSecs class to handle leap seconds
