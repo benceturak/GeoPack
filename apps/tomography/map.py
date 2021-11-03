@@ -22,7 +22,7 @@ RS = [
 #input files
 source_dir = '../../data/tomography/2021/'
 #station coordinate file CRD
-station_coords = source_dir+'SO21196A.CRD'
+station_coords = source_dir+'METEONET.CRD'
 #troposphere files
 
 

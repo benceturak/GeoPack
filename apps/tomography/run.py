@@ -116,7 +116,7 @@ output_dir = '../../data/tomography/2021/result/'
 
 
 
-constellations = 'TRPGG/'
+constellations = 'TRP/'
 
 output_file = constellations+'CT_'
 
@@ -180,14 +180,14 @@ for ep in eps:
     print(filename)
 
 
-    bernese_tropo = source_dir+constellations+'CR21'+str(ep.DOY)+c+'.TRP'
+    bernese_tropo = source_dir+constellations+'CO21'+str(ep.DOY)+c+'.TRP'
 
 
     tropo = readtrp.ReadTRP(bernese_tropo)
 
     x0 = matrix2vector(x0_3D)
 
-    A, b, stations = tomography(gridp, gridl, gridh, network, tropo, mapping_function, ep, ('G','R'), ())
+    A, b, stations = tomography(gridp, gridl, gridh, network, tropo, mapping_function, ep, ('G','R','E'), ())
 
 
 

@@ -5,6 +5,7 @@ import wget
 import urllib
 import os
 import logging
+import copy
 
 GPS = 1
 UTC = 2
@@ -98,7 +99,16 @@ class Epoch(object):
         #leapsec???????
         return datetime.date.toordinal(datetime.date(int(self.dt[0]),int(self.dt[1]),int(self.dt[2]))) + (self.dt[3] + (self.dt[4] + self.dt[5]/60)/60)/(24) - 678576
 
+    def floor(self, n):
+        dt = copy.deepcopy(self.dt)
+        dt[n+1:-1] = 0
+        return Epoch(dt)
 
+    def ceil(self, n):
+        dt = copy.deepcopy(self.dt)
+        dt[n+1:-1] = 0
+        dt[n] = dt[n] + 1
+        return Epoch(dt)
 
 
 

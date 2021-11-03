@@ -6,6 +6,9 @@ from station import Station
 import epoch
 from scipy import interpolate
 
+TXT = 1
+DB = 2
+
 
 class ReadTRP(object):
     """
@@ -14,26 +17,33 @@ class ReadTRP(object):
             :param fileName: name of TRP file (string)
     """
 
-    def __init__(self, fileName):
+    def __init__(self, fileName=None, database=None, table=None, type=TXT):
         """ReadTRP constructor
 
         """
+        if type == TXT:
+            self.fileName = fileName#filename
 
-        self.fileName = fileName#filename
+            self.troposphere = {}
+            #self.network = Network()
+            #self.comments = []#comment records
+            #self.navigationDatas = {}#navigation datas
+            #self.tauC = epoch.Epoch(np.array([0, 0, 0, 0, 0, 0]))
+            try:
+                self.fid = open(self.fileName, 'r')
+                #start read of header
+                self._readHeader()
+                #start read of stations
+                self._readBody()
+            finally:
+                self.fid.close()
+        elif type == DB:
+            self.database = database.cursor()
+            self.table = table
 
-        self.troposphere = {}
-        #self.network = Network()
-        #self.comments = []#comment records
-        #self.navigationDatas = {}#navigation datas
-        #self.tauC = epoch.Epoch(np.array([0, 0, 0, 0, 0, 0]))
-        try:
-            self.fid = open(self.fileName, 'r')
-            #start read of header
-            self._readHeader()
-            #start read of stations
-            self._readBody()
-        finally:
-            self.fid.close()
+        self.type = type
+
+
 
     def _readBody(self):
         """read TRP body
@@ -106,29 +116,236 @@ class ReadTRP(object):
                 break
 
     def get_MOD_U(self, digit4Id, ep):
-        f = interpolate.interp1d(self.troposphere[digit4Id][:,0], self.troposphere[digit4Id][:,1])
-        return f(ep.MJD)
+        if self.type == TXT:
+            f = interpolate.interp1d(self.troposphere[digit4Id][:,0], self.troposphere[digit4Id][:,1])
+            return f(ep.MJD)
+        elif self.type == DB:
+            sql = 'SELECT ZHD FROM TRPDELAY WHERE STATION=%s AND DATE=%s AND TIME=%s AND constellation=0;'
+            if ep.dt[4] == 0 and ep.dt[5] == 0:
+                dt = str(ep).split(' ')
+                params = (digit4Id, dt[0], dt[1])
+                self.database.execute(sql, params)
+                res = self.database.fetchall()
+                return res[0][0]
+            else:
+                ep_min = ep.floor(3)
+                ep_max = ep.ceil(3)
+
+                dt_min = str(ep_min).split(' ')
+                dt_max = str(ep_max).split(' ')
+
+                params = [(digit4Id, dt_min[0], dt_min[1]), (digit4Id, dt_max[0], dt_max[1])]
+                self.database.execute(sql, params[0])
+                res1 = self.database.fetchall()
+                self.database.execute(sql, params[1])
+                res2 = self.database.fetchall()
+
+                f = interpolate.interp1d((ep_min.MJD, ep_max.MJD), (res1[0][0], res2[0][0]))
+                return f(ep.MJD)
+
+
     def get_CORR_U(self, digit4Id, ep):
-        f = interpolate.interp1d(self.troposphere[digit4Id][:,0], self.troposphere[digit4Id][:,2])
-        return f(ep.MJD)
+        if self.type == TXT:
+            f = interpolate.interp1d(self.troposphere[digit4Id][:,0], self.troposphere[digit4Id][:,2])
+            return f(ep.MJD)
+        elif self.type == DB:
+            sql = 'SELECT ZWD FROM TRPDELAY WHERE STATION=%s AND DATE=%s AND TIME=%s AND constellation=0;'
+            if ep.dt[4] == 0 and ep.dt[5] == 0:
+                dt = str(ep).split(' ')
+                params = (digit4Id, dt[0], dt[1])
+                print(params)
+                self.database.execute(sql, params)
+                res = self.database.fetchall()
+                return res[0][0]
+            else:
+                ep_min = ep.floor(3)
+                ep_max = ep.ceil(3)
+
+                dt_min = str(ep_min).split(' ')
+                dt_max = str(ep_max).split(' ')
+
+                params = [(digit4Id, dt_min[0], dt_min[1]), (digit4Id, dt_max[0], dt_max[1])]
+                self.database.execute(sql, params[0])
+                res1 = self.database.fetchall()
+                self.database.execute(sql, params[1])
+                res2 = self.database.fetchall()
+
+                f = interpolate.interp1d((ep_min.MJD, ep_max.MJD), (res1[0][0], res2[0][0]))
+                return f(ep.MJD)
+
     def get_SIGMA_U(self, digit4Id, ep):
-        f = interpolate.interp1d(self.troposphere[digit4Id][:,0], self.troposphere[digit4Id][:,3])
-        return f(ep.MJD)
+        if self.type == TXT:
+            f = interpolate.interp1d(self.troposphere[digit4Id][:,0], self.troposphere[digit4Id][:,3])
+            return f(ep.MJD)
+        elif self.type == DB:
+            sql = 'SELECT SIGMA_ZWD FROM TRPDELAY WHERE STATION=%s AND DATE=%s AND TIME=%s AND constellation=0;'
+            if ep.dt[4] == 0 and ep.dt[5] == 0:
+                dt = str(ep).split(' ')
+                params = (digit4Id, dt[0], dt[1])
+                print(params)
+                self.database.execute(sql, params)
+                res = self.database.fetchall()
+                return res[0][0]
+            else:
+                ep_min = ep.floor(3)
+                ep_max = ep.ceil(3)
+
+                dt_min = str(ep_min).split(' ')
+                dt_max = str(ep_max).split(' ')
+
+                params = [(digit4Id, dt_min[0], dt_min[1]), (digit4Id, dt_max[0], dt_max[1])]
+                self.database.execute(sql, params[0])
+                res1 = self.database.fetchall()
+                self.database.execute(sql, params[1])
+                res2 = self.database.fetchall()
+
+                f = interpolate.interp1d((ep_min.MJD, ep_max.MJD), (res1[0][0], res2[0][0]))
+                return f(ep.MJD)
+
     def get_TOTAL_U(self, digit4Id, ep):
-        f = interpolate.interp1d(self.troposphere[digit4Id][:,4], self.troposphere[digit4Id][:,4])
-        return f(ep.MJD)
+        if self.type == TXT:
+            f = interpolate.interp1d(self.troposphere[digit4Id][:,0], self.troposphere[digit4Id][:,4])
+            return f(ep.MJD)
+        elif self.type == DB:
+            sql = 'SELECT ZTD FROM TRPDELAY WHERE STATION=%s AND DATE=%s AND TIME=%s AND constellation=0;'
+            if ep.dt[4] == 0 and ep.dt[5] == 0:
+                dt = str(ep).split(' ')
+                params = (digit4Id, dt[0], dt[1])
+
+                self.database.execute(sql, params)
+                res = self.database.fetchall()
+                return res[0][0]
+            else:
+                ep_min = ep.floor(3)
+                ep_max = ep.ceil(3)
+                dt_min = str(ep_min).split(' ')
+                dt_max = str(ep_max).split(' ')
+
+
+                params = [(digit4Id, dt_min[0], dt_min[1]), (digit4Id, dt_max[0], dt_max[1])]
+                self.database.execute(sql, params[0])
+                res1 = self.database.fetchall()
+                self.database.execute(sql, params[1])
+                res2 = self.database.fetchall()
+
+                f = interpolate.interp1d((ep_min.MJD, ep_max.MJD), (res1[0][0], res2[0][0]))
+                return f(ep.MJD)
+
     def get_CORR_N(self, digit4Id, ep):
-        f = interpolate.interp1d(self.troposphere[digit4Id][:,0], self.troposphere[digit4Id][:,5])
-        return f(ep.MJD)
+        if self.type == TXT:
+            f = interpolate.interp1d(self.troposphere[digit4Id][:,0], self.troposphere[digit4Id][:,5])
+            return f(ep.MJD)
+        elif self.type == DB:
+            sql = 'SELECT GRAD_N FROM TRPDELAY WHERE STATION=%s AND DATE=%s AND TIME=%s AND constellation=0;'
+            if ep.dt[4] == 0 and ep.dt[5] == 0:
+                dt = str(ep).split(' ')
+                params = (digit4Id, dt[0], dt[1])
+                print(params)
+                self.database.execute(sql, params)
+                res = self.database.fetchall()
+                return res[0][0]
+            else:
+                ep_min = ep.floor(3)
+                ep_max = ep.ceil(3)
+
+                dt_min = str(ep_min).split(' ')
+                dt_max = str(ep_max).split(' ')
+
+                params = [(digit4Id, dt_min[0], dt_min[1]), (digit4Id, dt_max[0], dt_max[1])]
+                self.database.execute(sql, params[0])
+                res1 = self.database.fetchall()
+                self.database.execute(sql, params[1])
+                res2 = self.database.fetchall()
+
+                f = interpolate.interp1d((ep_min.MJD, ep_max.MJD), (res1[0][0], res2[0][0]))
+                return f(ep.MJD)
+
     def get_SIGMA_N(self, digit4Id, ep):
-        f = interpolate.interp1d(self.troposphere[digit4Id][:,0], self.troposphere[digit4Id][:,6])
-        return f(ep.MJD)
+        if self.type == TXT:
+            f = interpolate.interp1d(self.troposphere[digit4Id][:,0], self.troposphere[digit4Id][:,6])
+            return f(ep.MJD)
+        elif self.type == DB:
+            sql = 'SELECT SIGMA_GRAD_N FROM TRPDELAY WHERE STATION=%s AND DATE=%s AND TIME=%s AND constellation=0;'
+            if ep.dt[4] == 0 and ep.dt[5] == 0:
+                dt = str(ep).split(' ')
+                params = (digit4Id, dt[0], dt[1])
+                print(params)
+                self.database.execute(sql, params)
+                res = self.database.fetchall()
+                return res[0][0]
+            else:
+                ep_min = ep.floor(3)
+                ep_max = ep.ceil(3)
+
+                dt_min = str(ep_min).split(' ')
+                dt_max = str(ep_max).split(' ')
+
+                params = [(digit4Id, dt_min[0], dt_min[1]), (digit4Id, dt_max[0], dt_max[1])]
+                self.database.execute(sql, params[0])
+                res1 = self.database.fetchall()
+                self.database.execute(sql, params[1])
+                res2 = self.database.fetchall()
+
+                f = interpolate.interp1d((ep_min.MJD, ep_max.MJD), (res1[0][0], res2[0][0]))
+                return f(ep.MJD)
+
     def get_CORR_E(self, digit4Id, ep):
-        f = interpolate.interp1d(self.troposphere[digit4Id][:,0], self.troposphere[digit4Id][:,7])
-        return f(ep.MJD)
+        if self.type == TXT:
+            f = interpolate.interp1d(self.troposphere[digit4Id][:,0], self.troposphere[digit4Id][:,7])
+            return f(ep.MJD)
+        elif self.type == DB:
+            sql = 'SELECT GRAD_E FROM TRPDELAY WHERE STATION=%s AND DATE=%s AND TIME=%s AND constellation=0;'
+            if ep.dt[4] == 0 and ep.dt[5] == 0:
+                dt = str(ep).split(' ')
+                params = (digit4Id, dt[0], dt[1])
+                print(params)
+                self.database.execute(sql, params)
+                res = self.database.fetchall()
+                return res[0][0]
+            else:
+                ep_min = ep.floor(3)
+                ep_max = ep.ceil(3)
+
+                dt_min = str(ep_min).split(' ')
+                dt_max = str(ep_max).split(' ')
+
+                params = [(digit4Id, dt_min[0], dt_min[1]), (digit4Id, dt_max[0], dt_max[1])]
+                self.database.execute(sql, params[0])
+                res1 = self.database.fetchall()
+                self.database.execute(sql, params[1])
+                res2 = self.database.fetchall()
+
+                f = interpolate.interp1d((ep_min.MJD, ep_max.MJD), (res1[0][0], res2[0][0]))
+                return f(ep.MJD)
+
     def get_SIGMA_E(self, digit4Id, ep):
-        f = interpolate.interp1d(self.troposphere[digit4Id][:,0], self.troposphere[digit4Id][:,8])
-        return f(ep.MJD)
+        if self.type == TXT:
+            f = interpolate.interp1d(self.troposphere[digit4Id][:,0], self.troposphere[digit4Id][:,8])
+            return f(ep.MJD)
+        elif self.type == DB:
+            sql = 'SELECT SIGMA_GRAD_E FROM TRPDELAY WHERE STATION=%s AND DATE=%s AND TIME=%s AND constellation=0;'
+            if ep.dt[4] == 0 and ep.dt[5] == 0:
+                dt = str(ep).split(' ')
+                params = (digit4Id, dt[0], dt[1])
+                self.database.execute(sql, params)
+                res = self.database.fetchall()
+                return res[0][0]
+            else:
+                ep_min = ep.floor(3)
+                ep_max = ep.ceil(3)
+
+                dt_min = str(ep_min).split(' ')
+                dt_max = str(ep_max).split(' ')
+
+                params = [(digit4Id, dt_min[0], dt_min[1]), (digit4Id, dt_max[0], dt_max[1])]
+                self.database.execute(sql, params[0])
+                res1 = self.database.fetchall()
+                self.database.execute(sql, params[1])
+                res2 = self.database.fetchall()
+
+                f = interpolate.interp1d((ep_min.MJD, ep_max.MJD), (res1[0][0], res2[0][0]))
+                return f(ep.MJD)
+
 
 
 
@@ -144,9 +361,17 @@ class ReadTRP(object):
 
 
 if __name__ == "__main__":
+    import mysql.connector
 
-    reader = ReadTRP("../../example/CO21173H.TRP")
+    database = mysql.connector.connect(
+    host = 'localhost',
+    user='gpsmet',
+    password='gpsmet2021',
+    database='gpsmet'
+    )
+
+    reader = ReadTRP(database = database, table = 'TRPDELAY',type=DB)
     id = 'BAIA'
-    ep = epoch.Epoch(np.array([2021,6,22,3,0,0]), system=epoch.GPS)
+    ep = epoch.Epoch(np.array([2021,9,30,3,30,0]), system=epoch.GPS)
 
-    print(np.shape(reader.getTropoByStationEpoch(id, ep)))
+    print(reader.get_MOD_U(id, ep))

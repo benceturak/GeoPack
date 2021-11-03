@@ -7,3 +7,6 @@ Leap_Second.dat
 proba.py
 proba.11n
 example
+*.pyc
+map.py
+_map.html
