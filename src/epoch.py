@@ -98,6 +98,11 @@ class Epoch(object):
         """
         #leapsec???????
         return datetime.date.toordinal(datetime.date(int(self.dt[0]),int(self.dt[1]),int(self.dt[2]))) + (self.dt[3] + (self.dt[4] + self.dt[5]/60)/60)/(24) - 678576
+    def date(self):
+        return '{0:d}-{1:02d}-{2:02d}'.format(int(self.dt[0]), int(self.dt[1]), int(self.dt[2]))
+
+    def time(self):
+        return '{0:02d}:{1:02d}:{2:02d}'.format(int(self.dt[3]), int(self.dt[4]), self.dt[5])
 
     def floor(self, n):
         dt = copy.deepcopy(self.dt)

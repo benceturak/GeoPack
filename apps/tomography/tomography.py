@@ -60,13 +60,14 @@ def tomography(gridp, gridl, gridh, network, tropo, mapping_function, ep, conste
 
         loc = trafo2local.getLocalCoords(sta)
         try:
-
-            zwd = tropo.get_CORR_U(sta.id, ep)
-            if zwd <= 0:
-                continue
-            grad_n = tropo.get_CORR_N(sta.id, ep)
-            grad_e = tropo.get_CORR_E(sta.id, ep)
-
+            try:
+                zwd = tropo.get_CORR_U(sta.id, ep)
+                if zwd <= 0:
+                    continue
+                grad_n = tropo.get_CORR_N(sta.id, ep)
+                grad_e = tropo.get_CORR_E(sta.id, ep)
+            except IndexError as er:
+                print(er)
             #zwd = grid.getZwd(sta, ep)
             #grad_n = 0
             #grad_e = 0
