@@ -1,6 +1,7 @@
 import epoch
 import numpy as np
 import logging
+from satellite import Satellite
 
 class SP3Reader(object):
 
@@ -25,12 +26,16 @@ class SP3Reader(object):
             self.fid.close()
     def _readBody(self):
         #print(self.positions)
-        for e in range(0,self.numOfEpochs):
+        line = self.fid.readline()
+        while line.strip() != 'EOF':
+
+            if line[0] == '*':
+                ep = epoch.Epoch(np.array([int(line[3:7]), int(line[8:10]), int(line[11:13]), int(line[14:16]), int(line[17:19]), float(line[20:31])]))
+            else:
+                self.positions[line[1:4]] = np.append(self.positions[line[1:4]], np.array([[ep, float(line[4:18])*1000, float(line[18:32])*1000, float(line[32:46])*1000, float(line[46:60])]]), axis=0)
+                #print(self.positions[line[1:4]][0])
+                #print(np.shape(self.positions[line[1:4]]))
             line = self.fid.readline()
-            ep = epoch.Epoch(np.array([int(line[3:7]), int(line[8:10]), int(line[11:13]), int(line[14:16]), int(line[17:19]), float(line[20:31])]))
-            for s in range(0,self.numOfSats):
-                line = self.fid.readline()
-                self.positions[line[1:4]] = np.append(self.positions[line[1:4]], np.array([[ep, float(line[4:18])*1000, float(line[18:32])*1000, float(line[32:46])*1000, line[46:60]]]), axis=0)
 
 
     def _readHeader(self):
@@ -44,6 +49,18 @@ class SP3Reader(object):
             except:
                 logging.warning("header row" + str(i) + " cannot be readed")
                 pass
+
+    def getSatellite(self, prn):
+        sat = Satellite(prn)
+        sat.addSP3coords(self.positions[prn])
+
+        return sat
+
+    def getSatellites(self):
+        for prn in self.positions:
+            yield self.getSatellite(prn)
+
+
 
     def headerRow1(self,line):
         self.version = line[1]

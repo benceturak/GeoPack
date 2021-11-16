@@ -13,6 +13,9 @@ import logging
 
 class SatError(Exception):pass
 
+SP3 = 1
+BRDC = 2
+
 class Satellite(object):
     """
         Satellite class for contain and calc position
@@ -28,13 +31,15 @@ class Satellite(object):
         elif prn[0] == 'R':
             return GLONASSSat(prn, nav)
 
-    def __init__(self, prn='', nav={}):
+    def __init__(self, prn='', nav={}, coords=[]):
         """Satellite constructor
 
         """
         self.system = prn[0]
         self.prn = (prn)
+        self.coords = []
         self.navigationDatas = []
+        self.source = None
     @property
     def l1(self):
         return scipy.constants.c/self.f1
@@ -61,6 +66,16 @@ class Satellite(object):
 
         """
         self.navigationDatas.append(nav)
+        self.source = BRDC
+
+    def addSP3coords(self, coords):
+        """add new coordinates to satellite
+
+            :param coords: navigation message (dictionary)
+
+        """
+        self.coords = coords
+        self.source = SP3
 
     def getElevAzimuth(self, st, epoch):
         """get elevetion and azimuth angle from point at epoch
@@ -126,9 +141,13 @@ class Satellite(object):
 
 
 
+    def getSatPosSP3(self, epoch, mod=0):
+        #print(np.shape(self.coords))
+        #print(self.coords)
 
+        return Point(coord=self.coords[np.where(self.coords[:,0] == epoch)[0], 1:4], system=ellipsoid.WGS84())
 
-    def getSatPos(self, epoch):
+    def getSatPosNav(self, epoch):
         """get satellite position at an epoch
 
                 :param epoch: timestamp when we get the position of satellite (Epoch)
@@ -138,6 +157,14 @@ class Satellite(object):
             return self._getGPSSatPos(epoch)
         elif self.system == 'R':pass#GLONASS satellite
         elif self.system == 'E':pass#Galileo satellite
+
+    def getSatPos(self, epoch):
+        if self.source == BRDC:
+            return self.getSatPosNav(epoch)
+        elif self.source == SP3:
+            return self.getSatPosSP3(epoch)
+
+
 
 
 
@@ -166,7 +193,7 @@ class GPSSat(Satellite):
                 break#break loop when valid epoch is finded
         raise TimeError("Epoch out of time frame!")
 
-    def getSatPos(self, epoch):
+    def getSatPosNav(self, epoch):
         """get satellite position in case of GPS satellite
 
                 :param epoch: timestamp when we get the position of satellite (Epoch)
@@ -274,7 +301,7 @@ class GLONASSSat(Satellite):
         raise TimeError("Epoch out of time frame!")
 
 
-    def getSatPos(self, epoch):
+    def getSatPosNav(self, epoch):
         """get satellite position in case of GLONASS satellite
 
                 :param epoch: timestamp when we get the position of satellite (Epoch)
@@ -391,7 +418,7 @@ class GalileoSat(Satellite):
                 break#break loop when valid epoch is finded
         raise TimeError("Epoch out of time frame!")
 
-    def getSatPos(self, epoch):
+    def getSatPosNav(self, epoch):
         """get satellite position in case of GPS satellite
 
                 :param epoch: timestamp when we get the position of satellite (Epoch)
