@@ -2,6 +2,7 @@ import sys
 sys.path.append('../../src')
 sys.path.append('../../src/bernese_formats')
 import broadcastnavreader
+import sp3reader
 import readcrd
 import readtrp
 import orographyreader
@@ -11,16 +12,10 @@ from scipy import stats
 import vmf1gridreader
 import vmf1
 import mart
-from plotrefractivity import plotRefractivity
 from vector2matrix import vector2matrix
 from matrix2vector import matrix2vector
 from tomography import tomography
-import matplotlib.pyplot as plt
 import station
-from ellipsoid import WGS84
-from getprofilefromct import getProfileFromCT
-from refractivityprofile import refractivityProfile
-from plotregression import plotRegression
 
 
 
@@ -131,64 +126,105 @@ class GNSSCT(object):
 
 
 if __name__ == "__main__":
+    import getopt
+    import importlib
+    opts, args = getopt.getopt(sys.argv[1:], 's:S:e:i:v:d:', ['satellites=', 'stations=', 'gridp=', 'gridl=', 'gridh=', 'vmf1loc=', 'initial=', 'epoch=', 'database='])
+    print(opts)
+
+    for o, v in opts:
+        if o == '--satellites' or o == '-s':
+            sats = v
+            brdc_mixed = v
+        elif o == '--stations' or o == '-S':
+            station_coords = v
+        elif o == '--gridp':
+            gridp_file = v
+        elif o == '--gridl':
+            gridl_file = v
+        elif o == '--gridh':
+            gridh_file = v
+        elif o == '--vmf1loc' or o == '-v':
+            vmf1grid_loc = v
+        elif o == '--initial' or o == '-i':
+            initial_vals_file = v
+        elif o == '--epoch' or o == '-e':
+            dt = v.split(' ')
+
+            date = dt[0].split('-')
+            time = dt[1].split(':')
+
+            ep = epoch.Epoch(np.array([int(date[0]),int(date[1]),int(date[2]),int(time[0]),int(time[1]),int(time[2])]), epoch.GPS)
+        elif o == '--database' or o == '-d':
+            print('aaa')
+            dbconfig = importlib.import_module(v)
+
+
+
+
 
 
 
     #input files
     code_letter = 'ABCDEFGHIJKLMNOPQRSTUVWX'
 
-    source_dir = '../../data/tomography/2021/'
-    output_dir = '../../data/tomography/2021/result/'
+    #source_dir = '../../data/tomography/2021/'
+    #output_dir = '../../data/tomography/2021/result/'
 
     #station coordinate file CRD
-    station_coords = source_dir+'METEONET.CRD'
+    #station_coords = source_dir+'METEONET.CRD'
     #troposphere files
 
-    gridp_file = 'gridp.csv'
-    gridl_file = 'gridl.csv'
-    gridh_file = 'gridh.csv'
+    #gridp_file = 'gridp.csv'
+    #gridl_file = 'gridl.csv'
+    #gridh_file = 'gridh.csv'
 
     gridp = np.loadtxt(gridp_file)*np.pi/180#np.arange(min[0], max[0], 0.6*np.pi/180)
     gridl = np.loadtxt(gridl_file)*np.pi/180#np.arange(min[1], max[1], 1.449*np.pi/180)
     gridh = np.loadtxt(gridh_file)
 
-    ep = epoch.Epoch(np.array([2021,10,1,6,30,0]), epoch.GPS)
+    #ep = epoch.Epoch(np.array([2021,10,1,6,30,0]), epoch.GPS)
 
     if ep.dt[3]%6 == 0 and ep.dt[4] == 0 and ep.dt[5] == 0:
-        vmf1_grid = [source_dir+'GRD/VMFG_{:4d}{:02d}{:02d}.H{:02d}'.format(ep.dt[0],ep.dt[1],ep.dt[2],ep.dt[3]),]
+        vmf1_grid = [vmf1grid_loc+'VMFG_{:4d}{:02d}{:02d}.H{:02d}'.format(ep.dt[0],ep.dt[1],ep.dt[2],ep.dt[3]),]
     else:
         ep_min = ep - epoch.Epoch(np.array([0,0,0,ep.dt[3]%6,0,0]))
         ep_max = ep_min + epoch.Epoch(np.array([0,0,0,6,0,0]))
-        vmf1_grid = [source_dir+'GRD/VMFG_{:4d}{:02d}{:02d}.H{:02d}'.format(ep_min.dt[0],ep_min.dt[1],ep_min.dt[2],ep_min.dt[3]),source_dir+'GRD/VMFG_{:4d}{:02d}{:02d}.H{:02d}'.format(ep_max.dt[0],ep_max.dt[1],ep_max.dt[2],ep_max.dt[3])]
+        vmf1_grid = [vmf1grid_loc+'VMFG_{:4d}{:02d}{:02d}.H{:02d}'.format(ep_min.dt[0],ep_min.dt[1],ep_min.dt[2],ep_min.dt[3]),vmf1grid_loc+'VMFG_{:4d}{:02d}{:02d}.H{:02d}'.format(ep_max.dt[0],ep_max.dt[1],ep_max.dt[2],ep_max.dt[3])]
 
 
     #VMF1 grid file
     #vmf1_grid = [source_dir+'GRD/VMFG_20210811.H00',source_dir+'GRD/VMFG_20210811.H06',source_dir+'GRD/VMFG_20210811.H12',source_dir+'GRD/VMFG_20210811.H18',source_dir+'GRD/VMFG_20210812.H00']
-    orography_ell = source_dir+'orography_ell'
+    orography_ell = vmf1grid_loc+'orography_ell'
     #satellite broadcast files
-    brdc_mixed = source_dir+'BRDC/BRDC00WRD_R_20212740000_01D_MN.rnx'
+    #brdc_mixed = source_dir+'BRDC/BRDC00WRD_R_20212740000_01D_MN.rnx'
     #epoch of the calculation
 
-    initial_vals_file = source_dir + 'initial.npy'
+    #initial_vals_file = source_dir + 'initial.npy'
 
     x0_3D = np.load(initial_vals_file)
 
     #x0 = matrix2vector(x0_3D)
 
-    ep = epoch.Epoch(np.array([2021,10,1,3,0,0]), epoch.GPS)
+    #ep = epoch.Epoch(np.array([2021,10,1,3,0,0]), epoch.GPS)
 
     network = readcrd.ReadCRD(station_coords).network
-    brdc = broadcastnavreader.BroadcastNavReader(brdc_mixed)
+    #brdc = broadcastnavreader.BroadcastNavReader(brdc_mixed)
+    brdc = sp3reader.SP3Reader(brdc_mixed)
 
+    #print(brdc.getSatellite('G01'))
+
+
+    print(ep)
     for sat in brdc.getSatellites():
         network.addSatellite(sat)
+
 
     orography = orographyreader.OrographyReader(orography_ell)
 
     grid = vmf1gridreader.VMF1GridReader(vmf1_grid, orography)
     mapping_function = vmf1.VMF1(grid)
 
-    import dbconfig
+    #import dbconfig
 
     troposphere = readtrp.ReadTRP(database = dbconfig.database, table = 'TRPDELAY', type=readtrp.DB)
 
