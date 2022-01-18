@@ -12,17 +12,21 @@ class ReadDB(object):
     def __init__(self, database=None):
         self._database = database
 
-    def _getStationsStatement(self, stations):
+    def _getStationsStatement(self, stations=None):
         """
 
         """
-        str = ' STATION=('
-        for s in stations:
-            str = str + s + ','
 
-        str = str[0:-1] + ')'
+        if stations != None:
+            str = ' STATION=('
+            for s in stations:
+                str = str + s + ','
 
-        return str
+            str = str[0:-1] + ')'
+
+            return str
+        else:
+            return ""
 
     def _getTimeframeStatement(self, ep_min, ep_max):
 
@@ -47,10 +51,10 @@ class ReadDB(object):
 
     def getZWD(self, stations=None, fr=None, to=None):
 
-        stations_statement = ''
+        stations_statement = self._getStationsStatement(satations)
 
 
-        sql = 'SELECT STATION, DATE, TIME, ZWD WHERE CONSTELLATION=0'
+        sql = 'SELECT STATION, DATE, TIME, ZWD WHERE CONSTELLATION=0 AND '+ self._getStationsStatement(satations) + 'AND' + self._getTimeframeStatement(fr, to)
 
 
 
