@@ -18,26 +18,26 @@ class ReadDB(object):
         """
 
         if stations != None:
-            str = ' STATION=('
+            str = ' STATION IN ('
             for s in stations:
-                str = str + s + ','
+                str = str + "'" + s + "',"
 
             str = str[0:-1] + ')'
 
             return str
         else:
-            return ""
+            return "1"
 
     def _getTimeframeStatement(self, ep_min, ep_max):
 
 
         if ep_min.date() != ep_max.date():
 
-            first_day_st = " (DATE="+ep_min.date() + " AND TIME>="+ep_min.time()+")"
+            first_day_st = " (DATE='"+ep_min.date() + "' AND TIME>='"+ep_min.time()+"')"
 
-            middle_days_st = " (DATE>"+ ep_min.date() +" AND DATE<"+ ep_max.date()+")"
+            middle_days_st = " (DATE>'"+ ep_min.date() +"' AND DATE<'"+ ep_max.date()+"')"
 
-            last_day_st = " (DATE="+ep_max.date() + " AND TIME<="+ep_max.time()+")"
+            last_day_st = " (DATE='"+ep_max.date() + "' AND TIME<='"+ep_max.time()+"')"
 
             return "(" + first_day_st + " OR" + middle_days_st + " OR" + last_day_st + ")"
         else:
@@ -45,19 +45,35 @@ class ReadDB(object):
 
 
 
+    def _getAllStations(self):
 
-    def getNw(self):
-        pass
+        sql = "SELECT * FROM STATION"
+
+        dbcursor = self._database.cursor()
+
+        dbcursor.execute(sql)
+        return dbcursor.fetchall()
+
+    def getNw(self, phi=(), lambda=(), alt=() fr=None, to=None):
+
+        sql = 'SELECT DATE, TIME, LAT, LON, ALT, NW FROM 3DREFRACTIVITY'
 
     def getZWD(self, stations=None, fr=None, to=None):
 
-        stations_statement = self._getStationsStatement(satations)
 
+        sql = 'SELECT STATION, DATE, TIME, ZWD FROM TRPDELAY WHERE CONSTELLATION=0 AND ' + self._getStationsStatement(stations) + ' AND' + self._getTimeframeStatement(fr, to)
 
-        sql = 'SELECT STATION, DATE, TIME, ZWD WHERE CONSTELLATION=0 AND '+ self._getStationsStatement(satations) + 'AND' + self._getTimeframeStatement(fr, to)
+        dbcursor = self._database.cursor()
 
+        dbcursor.execute(sql)
 
+        res = np.empty((0,3))
+        for s in dbcursor.fetchall():
+            time = s[2].__str__().split(':')
+            ep = Epoch(np.array([s[1].year, s[1].month, s[1].day, int(time[0]), int(time[1]), int(time[2])]))
+            res = np.append(res, [[s[0], ep, s[3]]], axis=0)
 
+        return res
 
 if __name__ == "__main__":
 
