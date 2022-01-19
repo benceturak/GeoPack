@@ -54,10 +54,35 @@ class ReadDB(object):
         dbcursor.execute(sql)
         return dbcursor.fetchall()
 
-    def getNw(self, phi=(), lambda=(), alt=() fr=None, to=None):
+    def _getLocationLatStatement(self, lat):
 
-        sql = 'SELECT DATE, TIME, LAT, LON, ALT, NW FROM 3DREFRACTIVITY'
+        return '(LAT>=' + str(lat[0]) + ' AND LAT<= ' + str(lat[1]) + ')'
 
+    def _getLocationLonStatement(self, lon):
+
+        return '(LON>=' + str(lon[0]) + ' AND LON<=' + str(lon[1]) + ')'
+
+    def _getLocationAltStatement(self, alt):
+
+        return '(ALT>=' + str(alt[0]) + ' AND ALT<= ' + str(alt[1]) + ')'
+
+    def getNw(self, lat=(), lon=(), alt=(), fr=None, to=None):
+
+
+        sql = 'SELECT DATE, TIME, LAT, LON, ALT, NW FROM 3DREFRACTIVITY WHERE ' + self._getTimeframeStatement(fr, to) + ' AND ' + self._getLocationLatStatement(lat) + ' AND ' + self._getLocationLonStatement(lon) + ' AND ' + self._getLocationAltStatement(alt)
+
+        dbcursor = self._database.cursor()
+
+        dbcursor.execute(sql)
+
+        res = np.empty((0,5))
+
+        for s in dbcursor.fetchall():
+            time = s[1].__str__().split(':')
+            ep = Epoch(np.array([s[0].year, s[0].month, s[0].day, int(time[0]), int(time[1]), int(time[2])]))
+            res = np.append(res, [[ep, s[2], s[3], s[4], s[5]]], axis=0)
+
+        return res
     def getZWD(self, stations=None, fr=None, to=None):
 
 
