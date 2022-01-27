@@ -25,7 +25,28 @@ class Little_RWriter(object):
     def write(self):
         pass
 
+class Little_RStation(object):
+git
+    source_list = {'FM-114': 'GPSZD'}
+
+    def __init__(self, lat, lon, alt, id, source='FM-114'):
+
+        self._source = source + " " + self.source_list[source]
+
+        self._data = np.empty((0,10))
+        self._QC =  = np.empty((0,10))
+
+        print(self._source)
+
+    def setPWpZTD(self):
+        pass
+
+    def add_data(self, data=np.array([[-888888, -888888, -888888, -888888, -888888, -888888, -888888, -888888, -888888, -888888]]), QC=np.array([[0, 0, 0, 0, 0, 0, 0, 0, 0, 0]])):pass
+
+
 if __name__ == "__main__":
+
+    sta = Little_RStation(lat=0, lon=0, alt=0, id='')
 
     writer = Little_RWriter()
 
