@@ -11,10 +11,10 @@ class Little_RWriter(object):
     def addStation(self, station):
         self._stations.append(station)
 
-    def header(self, lat=-888888, lon=-888888, id='', name='', platform='', source='', elevation=-888888, valid_fields=0, errors=0, warnings=0, seq_num=0, duplicates=0, sounding='F', bogus='F', discard='F', unix_time=-888888, julian_day=-888888, date='', sea_level_pressure=np.array([-888888,0]), reference_pressure=np.array([-888888,0]), ground_temperature=np.array([-888888,0]), sea_surface_temperature=np.array([-888888,0]), surface_pressure=np.array([-888888,0]), precipitation=np.array([-888888,0]), max_temperature=np.array([-888888,0]), min_temperature=np.array([-888888,0]), min_night_temperature=np.array([-888888,0]), pressure_tendancy_3H=np.array([-888888,0]), pressure_tendancy_24H=np.array([-888888,0]), cloud_cover=np.array([-888888,0]), ceiling=np.array([-888888,0]), PWpZTD=np.array([-888888,0])):
+    def header(self, lat=-888888, lon=-888888, id='', name='', fm_code='', source='', elevation=-888888, valid_fields=0, errors=0, warnings=0, seq_num=0, duplicates=0, sounding='F', bogus='F', discard='F', unix_time=-888888, julian_day=-888888, date='', sea_level_pressure=np.array([-888888,0]), reference_pressure=np.array([-888888,0]), ground_temperature=np.array([-888888,0]), sea_surface_temperature=np.array([-888888,0]), surface_pressure=np.array([-888888,0]), precipitation=np.array([-888888,0]), max_temperature=np.array([-888888,0]), min_temperature=np.array([-888888,0]), min_night_temperature=np.array([-888888,0]), pressure_tendancy_3H=np.array([-888888,0]), pressure_tendancy_24H=np.array([-888888,0]), cloud_cover=np.array([-888888,0]), ceiling=np.array([-888888,0]), PWpZTD=np.array([-888888,0])):
         header = "{:20.5f}{:20.5f}{:>40}{:>40}{:>40}{:>40}{:20.5f}{:10d}{:10d}{:10d}{:10d}{:10d}{:>10}{:>10}{:>10}{:10d}{:10d}{:>20}{:13.5f}{:7d}{:13.5f}{:7d}{:13.5f}{:7d}{:13.5f}{:7d}{:13.5f}{:7d}{:13.5f}{:7d}{:13.5f}{:7d}{:13.5f}{:7d}{:13.5f}{:7d}{:13.5f}{:7d}{:13.5f}{:7d}{:13.5f}{:7d}{:13.5f}{:7d}{:13.5f}{:7d}"
 
-        return header.format(lat, lon, id, name, platform, source, elevation, valid_fields, errors, warnings, seq_num, duplicates, sounding, bogus, discard, unix_time, julian_day, date, sea_level_pressure[0], int(sea_level_pressure[1]), reference_pressure[0], int(reference_pressure[1]), ground_temperature[0], int(ground_temperature[1]), sea_surface_temperature[0], int(sea_surface_temperature[1]), surface_pressure[0], int(surface_pressure[1]), precipitation[0], int(precipitation[1]), max_temperature[0], int(max_temperature[1]), min_temperature[0], int(min_temperature[1]), min_night_temperature[0], int(min_night_temperature[1]), pressure_tendancy_3H[0], int(pressure_tendancy_3H[1]), pressure_tendancy_24H[0], int(pressure_tendancy_24H[1]), cloud_cover[0], int(cloud_cover[1]), ceiling[0], int(ceiling[1]), PWpZTD[0], int(PWpZTD[1]))
+        return header.format(lat, lon, id, name, fm_code, source, elevation, valid_fields, errors, warnings, seq_num, duplicates, sounding, bogus, discard, unix_time, julian_day, date, sea_level_pressure[0], int(sea_level_pressure[1]), reference_pressure[0], int(reference_pressure[1]), ground_temperature[0], int(ground_temperature[1]), sea_surface_temperature[0], int(sea_surface_temperature[1]), surface_pressure[0], int(surface_pressure[1]), precipitation[0], int(precipitation[1]), max_temperature[0], int(max_temperature[1]), min_temperature[0], int(min_temperature[1]), min_night_temperature[0], int(min_night_temperature[1]), pressure_tendancy_3H[0], int(pressure_tendancy_3H[1]), pressure_tendancy_24H[0], int(pressure_tendancy_24H[1]), cloud_cover[0], int(cloud_cover[1]), ceiling[0], int(ceiling[1]), PWpZTD[0], int(PWpZTD[1]))
 
 
         return tail.format(valid_fields, errors, warnings)
@@ -37,9 +37,9 @@ class Little_RWriter(object):
         with open(self.fname, 'x') as fid:
 
             for s in self._stations:
-                if s._src == 'FM-114':
-
-                    print(self.header(lat=s.lat, lon=s.lon, id=s.id, source=s.source, PWpZTD=s.ztd), file=fid)
+                if s._fm_code == 'FM-114':
+                    date = str(s.epoch.dt[0]) + str(s.epoch.dt[1]) + str(s.epoch.dt[2]) + str(s.epoch.dt[3]) + str(s.epoch.dt[4]) + str(s.epoch.dt[5])
+                    print(self.header(lat=s.lat, lon=s.lon, id=s.id, name=s.name, fm_code=s.fm_code, source=s.source, date=date, PWpZTD=np.array([s.ztd, 0])), file=fid)
 
                     print(self.data(), file=fid)
                     print(self.end(), file=fid)
@@ -52,26 +52,27 @@ class Little_RWriter(object):
 
 
 class Little_RStation(object):
-    source_list = {'FM-114': 'GPSZD'}
+    fm_code_list = {'FM-114': 'GPSZD'}
 
-    def __init__(self, lat, lon, alt, id, epoch, source='FM-114'):
+    def __init__(self, lat, lon, alt, id, name, epoch, source, fm_code='FM-114'):
 
         self.lat = lat
         self.lon = lon
         self.alt = alt
         self.id = id
+        self.name = name
         self.epoch = epoch
+        self.source = source
 
-        self._src = source
+        self._fm_code = fm_code
 
         self._data = np.empty((0,10))
         self._QC = np.empty((0,10))
 
-        print(self._src)
 
     @property
-    def source(self):
-        return self._src + " " + self.source_list[self._src]
+    def fm_code(self):
+        return self._fm_code + " " + self.fm_code_list[self._fm_code]
 
     def setZTD(self, ztd):
         self.ztd = ztd

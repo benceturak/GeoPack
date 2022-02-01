@@ -1,6 +1,7 @@
 import numpy as np
-
+import point
 from epoch import Epoch
+import ellipsoid
 
 class ReadDB(object):
     """
@@ -39,9 +40,9 @@ class ReadDB(object):
 
             last_day_st = " (DATE='"+ep_max.date() + "' AND TIME<='"+ep_max.time()+"')"
 
-            return "(" + first_day_st + " OR" + middle_days_st + " OR" + last_day_st + ")"
+            return " (" + first_day_st + " OR" + middle_days_st + " OR" + last_day_st + ")"
         else:
-            return "(DATE="+ep_min.date() + " AND TIME>="+ep_min.time()+" TIME<="+ep_max.time()+")"
+            return " (DATE='"+ep_min.date() + "' AND TIME>='"+ep_min.time()+"' AND TIME<='"+ep_max.time()+"')"
 
 
 
@@ -116,6 +117,21 @@ class ReadDB(object):
             res = np.append(res, [[s[0], ep, s[3]]], axis=0)
 
         return res
+
+    def getStation(self, id4d):
+        sql = "SELECT STATION, LAT, LON, HEIGHT FROM STATION WHERE STATION='" + id4d + "'"
+
+        dbcursor = self._database.cursor()
+
+        dbcursor.execute(sql)
+
+        res = dbcursor.fetchall()
+
+        if res == []:
+            raise ValueError('Unknown station:' + id4d)
+        res = res[0]
+        return point.Point(id=res[0], coord=np.array([res[1], res[2], res[3]]), type=point.PLH, system=ellipsoid.WGS84())
+
 
 if __name__ == "__main__":
 
