@@ -38,7 +38,7 @@ class Little_RWriter(object):
 
             for s in self._stations:
                 if s._fm_code == 'FM-114':
-                    date = str(s.epoch.dt[0]) + str(s.epoch.dt[1]) + str(s.epoch.dt[2]) + str(s.epoch.dt[3]) + str(s.epoch.dt[4]) + str(s.epoch.dt[5])
+                    date = "{:4d}{:02d}{:02d}{:02d}{:02d}{:02d}".format(s.epoch.dt[0], s.epoch.dt[1], s.epoch.dt[2], s.epoch.dt[3], s.epoch.dt[4], s.epoch.dt[5])  #str(s.epoch.dt[0]) + str(s.epoch.dt[1]) + str(s.epoch.dt[2]) + str(s.epoch.dt[3]) + str(s.epoch.dt[4]) + str(s.epoch.dt[5])
                     print(self.header(lat=s.lat, lon=s.lon, id=s.id, name=s.name, fm_code=s.fm_code, source=s.source, date=date, PWpZTD=np.array([s.ztd, 0])), file=fid)
 
                     print(self.data(), file=fid)
