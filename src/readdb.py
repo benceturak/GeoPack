@@ -67,6 +67,23 @@ class ReadDB(object):
 
         return '(ALT>=' + str(alt[0]) + ' AND ALT<= ' + str(alt[1]) + ')'
 
+    def chechAvailabilityTrpDelay(self, stations=None, fr=None, to=None):
+
+        sql = 'SELECT STATION, DATE, TIME FROM TRPDELAY WHERE CONSTELLATION=0 AND ' + self._getStationsStatement(stations) + ' AND' + self._getTimeframeStatement(fr, to)
+
+        dbcursor = self._database.cursor()
+
+        dbcursor.execute(sql)
+
+        res = np.empty((0,3))
+        for s in dbcursor.fetchall():
+            time = s[2].__str__().split(':')
+            ep = Epoch(np.array([s[1].year, s[1].month, s[1].day, int(time[0]), int(time[1]), int(time[2])]))
+            res = np.append(res, [[s[0], ep, s[3]]], axis=0)
+
+        return res
+
+
     def getNw(self, lat=(), lon=(), alt=(), fr=None, to=None):
 
 
