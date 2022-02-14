@@ -20,7 +20,7 @@ try:
 
     for o, v in opts:
         if o == '--stations' or o == '-s':
-            stations = v.split(',')
+            stations = v.split('|')
         elif o == '--from' or o == '-f':
             dt = v.split('-')
 
