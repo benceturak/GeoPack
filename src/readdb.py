@@ -101,10 +101,32 @@ class ReadDB(object):
             res = np.append(res, [[ep, s[2], s[3], s[4], s[5]]], axis=0)
 
         return res
+
+    def getNwProfile(self, lat, lon, ep):
+        pass
+
+    
     def getZWD(self, stations=None, fr=None, to=None):
 
 
         sql = 'SELECT STATION, DATE, TIME, ZWD FROM TRPDELAY WHERE CONSTELLATION=0 AND ' + self._getStationsStatement(stations) + ' AND' + self._getTimeframeStatement(fr, to)
+
+        dbcursor = self._database.cursor()
+
+        dbcursor.execute(sql)
+
+        res = np.empty((0,3))
+        for s in dbcursor.fetchall():
+            time = s[2].__str__().split(':')
+            ep = Epoch(np.array([s[1].year, s[1].month, s[1].day, int(time[0]), int(time[1]), int(time[2])]))
+            res = np.append(res, [[s[0], ep, s[3]]], axis=0)
+
+        return res
+
+    def getZHD(self, stations=None, fr=None, to=None):
+
+
+        sql = 'SELECT STATION, DATE, TIME, ZHD FROM TRPDELAY WHERE CONSTELLATION=0 AND ' + self._getStationsStatement(stations) + ' AND' + self._getTimeframeStatement(fr, to)
 
         dbcursor = self._database.cursor()
 
