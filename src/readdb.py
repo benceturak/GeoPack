@@ -102,10 +102,48 @@ class ReadDB(object):
 
         return res
 
-    def getNwProfile(self, lat, lon, ep):
-        pass
+    def getNwAtEp(self, ep):
 
-    
+        sql = "SELECT DATE, TIME, LAT, LON, ALT, NW FROM 3DREFRACTIVITY WHERE DATE='"+ep.date()+"' AND TIME='"+ep.time()+"'"
+        dbcursor = self._database.cursor()
+
+        dbcursor.execute(sql)
+
+        res = np.empty((0,5))
+
+        x = np.empty((0,))
+        y = np.empty((0,))
+        z = np.empty((0,))
+
+        Nw_rows = np.empty((0,4))
+
+        for s in dbcursor.fetchall():
+            if not s[2] in x:
+                x = np.append(x, s[2])
+            if not s[3] in y:
+                y = np.append(y, s[3])
+            if not s[4] in z:
+                z = np.append(z, s[4])
+            Nw_rows = np.append(Nw_rows, [[s[2], s[3], s[4], s[5]]], axis=0)
+        np.sort(x)
+        np.sort(y)
+        np.sort(z)
+
+        Nw = np.empty((len(x),len(y),len(z)))
+
+        for xv in x:
+            for yv in y:
+                for zv in z:
+                    i = np.all(np.array([Nw_rows[:,0] == xv, Nw_rows[:,1] == yv, Nw_rows[:,2] == zv]), axis=0)
+                    Nw[np.where(x == xv)[0], np.where(y == yv)[0], np.where(z == zv)[0]] = Nw_rows[i,3]
+
+        time = s[1].__str__().split(':')
+        ep = Epoch(np.array([s[0].year, s[0].month, s[0].day, int(time[0]), int(time[1]), int(time[2])]))
+
+        return Nw, ep
+
+
+
     def getZWD(self, stations=None, fr=None, to=None):
 
 
@@ -173,13 +211,17 @@ class ReadDB(object):
 
 
 if __name__ == "__main__":
+    import sys
+    sys.path.append("../apps/gpsmet_analysis")
+    import dbconfig
 
+    db = ReadDB(dbconfig.database)
 
-    db = ReadDB('aaaa')
-
-    a = Epoch(np.array([2022,1,1,2,21,0]))
+    a = Epoch(np.array([2022,2,2,18,0,0]))
     b = Epoch(np.array([2022,1,1,8,5,0]))
 
+    #db.getNwProfile(45,17,a,0)
+    exit()
     print(db._getTimeframeStatement(a,b))
 
     print(db._getStationsStatement(('AAAA', 'BBBB', 'CCCC', 'DDDD')))
