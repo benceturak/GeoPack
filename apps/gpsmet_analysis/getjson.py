@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-
+output = {"data": {}, "log": {"error": [], "warning": [], "info": []}}
 try:
     import sys
     import traceback
@@ -40,7 +40,7 @@ try:
     #fr = Epoch(np.array([2021,11,1,2,0,0]))
     #to = Epoch(np.array([2021,11,1,3,0,0]))
 
-    output = {"data": {}, "log": {"error": [], "warning": [], "info": []}}
+
 
     if type == 'ZWD' or type == 'zwd':
         trpdelays = database.getZWD(stations=stations, fr=fr, to=to)

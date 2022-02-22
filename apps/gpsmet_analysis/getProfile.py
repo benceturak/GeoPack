@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-
+output = {"data": {}, "log": {"error": [], "warning": [], "info": []}}
 try:
     import sys
     import traceback
@@ -14,7 +14,7 @@ try:
     import json
     opts, args = getopt.getopt(sys.argv[1:], 'p:l:e:h:T:m:', ['phi=', 'lam=', 'epoch=', 'type=', 'method=', 'help'])
     stations = None
-
+    type = "linear"
 
 
     for o, v in opts:
@@ -38,8 +38,6 @@ try:
 
     #fr = Epoch(np.array([2021,11,1,2,0,0]))
     #to = Epoch(np.array([2021,11,1,3,0,0]))
-
-    output = {"data": [], "log": {"error": [], "warning": [], "info": []}}
 
     if type == 'Nw' or type == 'NW':
         profile = database.getNwProfile(lat, lon, ep, kind)
