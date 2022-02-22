@@ -139,8 +139,6 @@ class ReadDB(object):
                     i = np.all(np.array([Nw_rows[:,0] == xv, Nw_rows[:,1] == yv, Nw_rows[:,2] == zv]), axis=0)
                     Nw[np.where(x == xv)[0], np.where(y == yv)[0], np.where(z == zv)[0]] = Nw_rows[i,3]
 
-        time = s[1].__str__().split(':')
-        ep = Epoch(np.array([s[0].year, s[0].month, s[0].day, int(time[0]), int(time[1]), int(time[2])]))
         return (Nw, x, y, z)
 
     def getProfile(self, data, x, y, z, lat, lon, kind):

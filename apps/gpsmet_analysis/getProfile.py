@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-output = {"data": {}, "log": {"error": [], "warning": [], "info": []}}
+output = {"data": [], "log": {"error": [], "warning": [], "info": []}}
 try:
     import sys
     import traceback
@@ -14,7 +14,8 @@ try:
     import json
     opts, args = getopt.getopt(sys.argv[1:], 'p:l:e:h:T:m:', ['phi=', 'lam=', 'epoch=', 'type=', 'method=', 'help'])
     stations = None
-    type = "linear"
+    type = "Nw"
+    kind = "linear"
 
 
     for o, v in opts:
