@@ -12,7 +12,7 @@ try:
     import getopt
     import importlib
     import json
-    opts, args = getopt.getopt(sys.argv[1:], 's:f:t:o:h:T:', ['stations=', 'from=', 'to=', 'output=', 'type=', 'help'])
+    opts, args = getopt.getopt(sys.argv[1:], 's:f:t:h:T:', ['stations=', 'from=', 'to=', 'type=', 'help'])
     stations = None
 
 
@@ -51,7 +51,7 @@ try:
     elif type == 'ZTD' or type == 'ztd':
         trpdelays = database.getZTD(stations=stations, fr=fr, to=to)
         output['log']['info'].append('Zenith Total Delay data from '+str(fr)+' to '+str(to))
-    
+
     for i in trpdelays:
         try:
             st = i[0]

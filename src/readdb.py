@@ -2,6 +2,7 @@ import numpy as np
 import point
 from epoch import Epoch
 import ellipsoid
+from scipy import interpolate
 
 class ReadDB(object):
     """
@@ -129,6 +130,7 @@ class ReadDB(object):
         np.sort(y)
         np.sort(z)
 
+
         Nw = np.empty((len(x),len(y),len(z)))
 
         for xv in x:
@@ -139,8 +141,26 @@ class ReadDB(object):
 
         time = s[1].__str__().split(':')
         ep = Epoch(np.array([s[0].year, s[0].month, s[0].day, int(time[0]), int(time[1]), int(time[2])]))
+        return (Nw, x, y, z)
 
-        return Nw, ep
+    def getProfile(self, data, x, y, z, lat, lon, kind):
+        profile = np.empty((0,2))
+
+        for i in range(0,np.shape(data)[2]):
+            f_Nw = interpolate.interp2d(x,y, data[:,:,i].T, kind=kind)
+            profile =  np.append(profile,[[z[i],f_Nw(lat, lon)[0]]], axis=0)
+
+        return profile
+
+
+
+
+    def getNwProfile(self, lat, lon, ep, kind='linear'):
+        Nw, x, y, z = self.getNwAtEp(ep)
+
+        return self.getProfile(Nw, x, y, z, lat, lon, kind)
+
+
 
 
 
@@ -219,7 +239,8 @@ if __name__ == "__main__":
 
     a = Epoch(np.array([2022,2,2,18,0,0]))
     b = Epoch(np.array([2022,1,1,8,5,0]))
-
+    #getNwProfile(self, lat, lon, ep):
+    print(db.getNwProfile(45, 17, a))
     #db.getNwProfile(45,17,a,0)
     exit()
     print(db._getTimeframeStatement(a,b))
