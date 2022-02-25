@@ -213,6 +213,30 @@ class ReadDB(object):
 
         return res
 
+    def getStationTypes(self):
+        sql = "SELECT * FROM STATIONTYPE"
+        dbcursor = self._database.cursor()
+        dbcursor.execute(sql)
+
+        res = {}
+
+        for i in dbcursor.fetchall():
+            res[str(i[0])] = i[1]
+
+        return res
+
+
+    def getStations(self):
+
+        types = self.getStationTypes()
+        sql = "SELECT STATION, LAT, LON, HEIGHT, TYPE FROM STATION"
+        dbcursor = self._database.cursor()
+        dbcursor.execute(sql)
+
+        for sta in dbcursor.fetchall():
+            yield point.Point(id=sta[0], code=types[str(sta[4])], coord=np.array([sta[1], sta[2], sta[3]]), type=point.PLH, system=ellipsoid.WGS84())
+
+
     def getStation(self, id4d):
         sql = "SELECT STATION, LAT, LON, HEIGHT FROM STATION WHERE STATION='" + id4d + "'"
 
@@ -238,7 +262,9 @@ if __name__ == "__main__":
     a = Epoch(np.array([2022,2,2,18,0,0]))
     b = Epoch(np.array([2022,1,1,8,5,0]))
     #getNwProfile(self, lat, lon, ep):
-    print(db.getNwProfile(45, 17, a))
+    for i in db.getStations():
+        print(i.code)
+
     #db.getNwProfile(45,17,a,0)
     exit()
     print(db._getTimeframeStatement(a,b))
