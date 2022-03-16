@@ -21,7 +21,7 @@ import station
 
 class GNSSCT(object):
 
-    def __init__(self, gridp, gridl, gridh, x0_3D, network, troposphere, mapping_function, ep, constellation=('G', 'R', 'E'), max_iter=3000, tolerance=2.7):
+    def __init__(self, gridp, gridl, gridh, x0_3D_w, x0_3D_h, network, troposphere, mapping_function, ep, constellation=('G', 'R', 'E'), max_iter=3000, tolerance=2.7):
         self.gridp = gridp
         self.gridl = gridl
         self.gridh = gridh
@@ -31,7 +31,8 @@ class GNSSCT(object):
         self.cellZ = len(self.gridh)-1
 
 
-        self.x0_3D = np.load(initial_vals_file)
+        self.x0_3D_w = x0_3D_w#np.load(initial_vals_file)
+        self.x0_3D_h = x0_3D_h
 
         self.network = network
 
@@ -47,6 +48,7 @@ class GNSSCT(object):
         self.tolerance = tolerance
 
         self.Nw_3D = None
+        self.Nh_3D = None
 
     def _calcGridCoords(self):
 
@@ -64,7 +66,7 @@ class GNSSCT(object):
 
 
 
-    def writeN2DB(self, database, table):
+    def writeNW2DB(self, database, table):
         cursor = database.cursor()
         sql = 'INSERT INTO ' + table + ' (DATE, TIME, LAT, LON, ALT, NW) VALUES (%s, %s, %s, %s, %s, %s)'
         params = []
@@ -80,55 +82,110 @@ class GNSSCT(object):
 
         database.commit()
 
-    def write2npy(self, fname):
+    def writeNH2DB(self, database, table):
+        cursor = database.cursor()
+        sql = 'INSERT INTO ' + table + ' (DATE, TIME, LAT, LON, ALT, NH) VALUES (%s, %s, %s, %s, %s, %s)'
+        params = []
+        p,l,h = ct._calcGridCoords()
+
+
+        for i in range(0,np.shape(p)[0]):
+            for j in range(0,np.shape(l)[0]):
+                for k in range(0,np.shape(h)[0]):
+                    params.append((self.ep.date(), self.ep.time(), p[i], l[j], h[k], self.Nh_3D[i, j, k]))
+
+        cursor.executemany(sql, params)
+
+        database.commit()
+
+    def writeNw2npy(self, fname):
 
         np.save(fname, self.Nw_3D)
+
+    def writeNh2npy(self, fname):
+
+        np.save(fname, self.Nh_3D)
 
 
 
     def run(self):
 
-        train_A, train_b, stations = tomography(self.gridp, self.gridl, self.gridh, self.network, self.troposphere, self.mapping_function, self.ep, self.constellation, ())
+        train_A, train_b_w, train_b_h, stations = tomography(self.gridp, self.gridl, self.gridh, self.network, self.troposphere, self.mapping_function, self.ep, self.constellation, ())
 
+        train_A_w = train_A
+        train_A_h = train_A
         print(np.shape(train_A))
-        Nw_vec = matrix2vector(self.x0_3D)
+        Nw_vec = matrix2vector(self.x0_3D_w)
+        Nh_vec = matrix2vector(self.x0_3D_h)
         print(np.shape(train_A))
-        print(np.shape(train_b))
+        #print(np.shape(train_b))
         print(np.shape(Nw_vec))
+        print(np.shape(Nh_vec))
         while True:
-            Nw_vec, iter_num = mart.mart(train_A, train_b, self.max_iter, Nw_vec, self.tolerance/100)
+            Nw_vec, iter_num = mart.mart(train_A_w, train_b_w, self.max_iter, Nw_vec, self.tolerance/100)
 
-            train_b_est = np.dot(train_A, Nw_vec)*10**-6
+            train_b_w_est = np.dot(train_A_w, Nw_vec)*10**-6
 
 
-            m, section, r, p, se = stats.linregress(train_b*10**-6, train_b_est)
+            m, section, r, p, se = stats.linregress(train_b_w*10**-6, train_b_w_est)
 
             regline = lambda x: m*x + section
 
-            diff = train_b_est - regline(train_b*10**-6)
+            diff = train_b_w_est - regline(train_b_w*10**-6)
 
             sigma = float(np.std(diff))
 
-            numOfRay = len(train_b_est)
+            numOfRay = len(train_b_w_est)
 
 
             indeces = np.where(np.abs(diff) < 3*np.std(diff))[0]
-            train_A = train_A[indeces,:]
-            train_b = train_b[indeces]
+            train_A_w = train_A_w[indeces,:]
+            train_b_w = train_b_w[indeces]
 
-            train_b_est = train_b_est[indeces]
+            train_b_w_est = train_b_w_est[indeces]
 
 
-            if numOfRay == len(train_b_est):
+            if numOfRay == len(train_b_w_est):
                 break
 
         self.Nw_3D = vector2matrix(Nw_vec, (self.cellX, self.cellY, self.cellZ))
+
+        while True:
+            Nh_vec, iter_num = mart.mart(train_A_h, train_b_h, self.max_iter, Nh_vec, self.tolerance/100)
+
+            train_b_h_est = np.dot(train_A_h, Nh_vec)*10**-6
+            print(np.shape(train_b_h_est*10**-6))
+            print(np.shape(train_b_h))
+
+
+            m, section, r, p, se = stats.linregress(train_b_h*10**-6, train_b_h_est)
+
+            regline = lambda x: m*x + section
+
+            diff = train_b_h_est - regline(train_b_h*10**-6)
+
+            sigma = float(np.std(diff))
+
+            numOfRay = len(train_b_h_est)
+
+
+            indeces = np.where(np.abs(diff) < 3*np.std(diff))[0]
+            train_A_h = train_A_h[indeces,:]
+            train_b_h = train_b_h[indeces]
+
+            train_b_h_est = train_b_h_est[indeces]
+
+
+            if numOfRay == len(train_b_h_est):
+                break
+
+        self.Nh_3D = vector2matrix(Nh_vec, (self.cellX, self.cellY, self.cellZ))
 
 
 if __name__ == "__main__":
     import getopt
     import importlib
-    opts, args = getopt.getopt(sys.argv[1:], 's:S:e:i:v:d:', ['satellites=', 'stations=', 'gridp=', 'gridl=', 'gridh=', 'vmf1loc=', 'initial=', 'epoch=', 'database='])
+    opts, args = getopt.getopt(sys.argv[1:], 's:S:e:i:v:d:', ['satellites=', 'stations=', 'gridp=', 'gridl=', 'gridh=', 'vmf1loc=', 'initial_w=', 'initial_h=', 'epoch=', 'database='])
     print(opts)
 
     for o, v in opts:
@@ -145,15 +202,14 @@ if __name__ == "__main__":
             gridh_file = v
         elif o == '--vmf1loc' or o == '-v':
             vmf1grid_loc = v
-        elif o == '--initial' or o == '-i':
-            initial_vals_file = v
+        elif o == '--initial_w' or o == '-i':
+            initial_w_vals_file = v
+        elif o == '--initial_h':
+            initial_h_vals_file = v
         elif o == '--epoch' or o == '-e':
-            dt = v.split(' ')
+            dt = v.split('-')
 
-            date = dt[0].split('-')
-            time = dt[1].split(':')
-
-            ep = epoch.Epoch(np.array([int(date[0]),int(date[1]),int(date[2]),int(time[0]),int(time[1]),int(time[2])]), epoch.GPS)
+            ep = epoch.Epoch(np.array([int(dt[0]),int(dt[1]),int(dt[2]),int(dt[3]),int(dt[4]),int(dt[5])]), epoch.GPS)
         elif o == '--database' or o == '-d':
             print('aaa')
             dbconfig = importlib.import_module(v)
@@ -185,11 +241,11 @@ if __name__ == "__main__":
     #ep = epoch.Epoch(np.array([2021,10,1,6,30,0]), epoch.GPS)
 
     if ep.dt[3]%6 == 0 and ep.dt[4] == 0 and ep.dt[5] == 0:
-        vmf1_grid = [vmf1grid_loc+'VMFG_{:4d}{:02d}{:02d}.H{:02d}'.format(ep.dt[0],ep.dt[1],ep.dt[2],ep.dt[3]),]
+        vmf1_grid = [vmf1grid_loc+'{:4d}/VMFG_{:4d}{:02d}{:02d}.H{:02d}'.format(ep.dt[0],ep.dt[0],ep.dt[1],ep.dt[2],ep.dt[3]),]
     else:
         ep_min = ep - epoch.Epoch(np.array([0,0,0,ep.dt[3]%6,0,0]))
         ep_max = ep_min + epoch.Epoch(np.array([0,0,0,6,0,0]))
-        vmf1_grid = [vmf1grid_loc+'VMFG_{:4d}{:02d}{:02d}.H{:02d}'.format(ep_min.dt[0],ep_min.dt[1],ep_min.dt[2],ep_min.dt[3]),vmf1grid_loc+'VMFG_{:4d}{:02d}{:02d}.H{:02d}'.format(ep_max.dt[0],ep_max.dt[1],ep_max.dt[2],ep_max.dt[3])]
+        vmf1_grid = [vmf1grid_loc+'{:4d}/VMFG_{:4d}{:02d}{:02d}.H{:02d}'.format(ep_min.dt[0],ep_min.dt[0],ep_min.dt[1],ep_min.dt[2],ep_min.dt[3]),vmf1grid_loc+'{:4d}/VMFG_{:4d}{:02d}{:02d}.H{:02d}'.format(ep_max.dt[0],ep_max.dt[0],ep_max.dt[1],ep_max.dt[2],ep_max.dt[3])]
 
 
     #VMF1 grid file
@@ -201,7 +257,8 @@ if __name__ == "__main__":
 
     #initial_vals_file = source_dir + 'initial.npy'
 
-    x0_3D = np.load(initial_vals_file)
+    x0_3D_w = np.load(initial_w_vals_file)
+    x0_3D_h = np.load(initial_h_vals_file)
 
     #x0 = matrix2vector(x0_3D)
 
@@ -228,11 +285,15 @@ if __name__ == "__main__":
 
     troposphere = readtrp.ReadTRP(database = dbconfig.database, table = 'TRPDELAY', type=readtrp.DB)
 
-    ct = GNSSCT(gridp, gridl, gridh, x0_3D, network, troposphere, mapping_function, ep)
+    ct = GNSSCT(gridp, gridl, gridh, x0_3D_w, x0_3D_h, network, troposphere, mapping_function, ep)
 
     ct.run()
 
-    ct.writeN2DB(dbconfig.database, '3DREFRACTIVITY')
+    ct.writeNW2DB(dbconfig.database, '3DREFRACTIVITY_W')
+    ct.writeNH2DB(dbconfig.database, '3DREFRACTIVITY_H')
+
+    ct.writeNw2npy(initial_w_vals_file)
+    ct.writeNh2npy(initial_h_vals_file)
 
 
 

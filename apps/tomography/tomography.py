@@ -2,18 +2,15 @@ import sys
 import os
 sys.path.append('../../src')
 sys.path.append('../../src/bernese_formats')
-import broadcastnavreader
 import epoch
 import numpy as np
-import vmf1gridreader
-import vmf1
 import getlocal
 import line
 import point
 import mart
-from plotrefractivity import plotRefractivity
 from matrix2vector import matrix2vector
 from vector2matrix import vector2matrix
+import traceback
 
 def tomography(gridp, gridl, gridh, network, tropo, mapping_function, ep, constellation=('G','R','E'), ignore_stations=[]):
 
@@ -45,7 +42,8 @@ def tomography(gridp, gridl, gridh, network, tropo, mapping_function, ep, conste
 
 
     A = np.empty((0,cellX*cellY*cellZ))
-    b = np.empty((0,))
+    b_w = np.empty((0,))
+    b_h = np.empty((0,))
 
     stations = []
 
@@ -62,12 +60,15 @@ def tomography(gridp, gridl, gridh, network, tropo, mapping_function, ep, conste
         try:
             try:
                 zwd = tropo.get_CORR_U(sta.id, ep)
+                zhd = tropo.get_MOD_U(sta.id, ep)
                 if zwd <= 0:
                     continue
                 grad_n = tropo.get_CORR_N(sta.id, ep)
                 grad_e = tropo.get_CORR_E(sta.id, ep)
             except IndexError as er:
-                print(er)
+                exc_type, exc_value, exc_traceback = sys.exc_info()
+                traceback.print_tb(exc_traceback)
+                continue
             #zwd = grid.getZwd(sta, ep)
             #grad_n = 0
             #grad_e = 0
@@ -90,7 +91,7 @@ def tomography(gridp, gridl, gridh, network, tropo, mapping_function, ep, conste
 
 
                         swd = mapping_function.slantDelay_w(zwd, sta, elevAz[1], elevAz[0], ep, grad_n, grad_e)
-
+                        shd = mapping_function.slantDelay_h(zhd, sta, elevAz[1], elevAz[0], ep, grad_n, grad_e)
 
 
                         ray = line.Line(loc, elevAz[1], elevAz[0])
@@ -227,7 +228,8 @@ def tomography(gridp, gridl, gridh, network, tropo, mapping_function, ep, conste
 
 
                         A = np.append(A, [A_row], axis=0)
-                        b = np.append(b, [swd*10**6])
+                        b_w = np.append(b_w, [swd*10**6])
+                        b_h = np.append(b_h, [shd*10**6])
                         stations.append(sta.id)
 
 
@@ -248,10 +250,18 @@ def tomography(gridp, gridl, gridh, network, tropo, mapping_function, ep, conste
 
 
                 except epoch.TimeError as er:
-                    print(er)
+                    exc_type, exc_value, exc_traceback = sys.exc_info()
+                    traceback.print_tb(exc_traceback)
+                except IndexError as er:
+                    exc_type, exc_value, exc_traceback = sys.exc_info()
+                    traceback.print_tb(exc_traceback)
         except KeyError as er:
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            traceback.print_tb(exc_traceback)
             pass
         except ValueError as er:
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            traceback.print_tb(exc_traceback)
             pass
 
 
@@ -269,7 +279,7 @@ def tomography(gridp, gridl, gridh, network, tropo, mapping_function, ep, conste
 
 
 
-    return (A, b, stations)
+    return (A, b_w, b_h, stations)
 
 
 
