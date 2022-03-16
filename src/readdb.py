@@ -88,7 +88,7 @@ class ReadDB(object):
     def getNw(self, lat=(), lon=(), alt=(), fr=None, to=None):
 
 
-        sql = 'SELECT DATE, TIME, LAT, LON, ALT, NW FROM 3DREFRACTIVITY WHERE ' + self._getTimeframeStatement(fr, to) + ' AND ' + self._getLocationLatStatement(lat) + ' AND ' + self._getLocationLonStatement(lon) + ' AND ' + self._getLocationAltStatement(alt)
+        sql = 'SELECT DATE, TIME, LAT, LON, ALT, NW FROM 3DREFRACTIVITY_W WHERE ' + self._getTimeframeStatement(fr, to) + ' AND ' + self._getLocationLatStatement(lat) + ' AND ' + self._getLocationLonStatement(lon) + ' AND ' + self._getLocationAltStatement(alt)
 
         dbcursor = self._database.cursor()
 
@@ -105,7 +105,7 @@ class ReadDB(object):
 
     def getNwAtEp(self, ep):
 
-        sql = "SELECT DATE, TIME, LAT, LON, ALT, NW FROM 3DREFRACTIVITY WHERE DATE='"+ep.date()+"' AND TIME='"+ep.time()+"'"
+        sql = "SELECT DATE, TIME, LAT, LON, ALT, NW FROM 3DREFRACTIVITY_W WHERE DATE='"+ep.date()+"' AND TIME='"+ep.time()+"'"
         dbcursor = self._database.cursor()
 
         dbcursor.execute(sql)
