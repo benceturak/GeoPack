@@ -150,7 +150,7 @@ class GNSSCT(object):
 
         self.Nw_3D = vector2matrix(Nw_vec, (self.cellX, self.cellY, self.cellZ))
 
-        while True:
+        """while True:
             Nh_vec, iter_num = mart.mart(train_A_h, train_b_h, self.max_iter, Nh_vec, self.tolerance/100)
 
             train_b_h_est = np.dot(train_A_h, Nh_vec)*10**-6
@@ -179,7 +179,7 @@ class GNSSCT(object):
             if numOfRay == len(train_b_h_est):
                 break
 
-        self.Nh_3D = vector2matrix(Nh_vec, (self.cellX, self.cellY, self.cellZ))
+        self.Nh_3D = vector2matrix(Nh_vec, (self.cellX, self.cellY, self.cellZ))"""
 
 
 if __name__ == "__main__":
@@ -290,10 +290,10 @@ if __name__ == "__main__":
     ct.run()
 
     ct.writeNW2DB(dbconfig.database, '3DREFRACTIVITY_W')
-    ct.writeNH2DB(dbconfig.database, '3DREFRACTIVITY_H')
+    #ct.writeNH2DB(dbconfig.database, '3DREFRACTIVITY_H')
 
     ct.writeNw2npy(initial_w_vals_file)
-    ct.writeNh2npy(initial_h_vals_file)
+    #ct.writeNh2npy(initial_h_vals_file)
 
 
 
