@@ -38,7 +38,7 @@ class OrographyReader(object):
 
 
     def _readBody(self):
-        """read TRP body
+        """read orography file body
 
         """
         line = self.fid.readline()

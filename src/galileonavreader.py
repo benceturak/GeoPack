@@ -16,6 +16,10 @@ class GalileoNavReader(NavReader):
 
 
     def getSatellite(self, prn):
+        """Get satellite orbit navigation messages
+            :param prn: prn of satellire (int)
+            :return: satellite orbit (Satellite object)
+        """
 
         sat = Satellite(prn)
         for i in self.navigationDatas[prn]:
@@ -83,7 +87,9 @@ class GalileoNavReader(NavReader):
             line = self.fid.readline()
 
     def _readEpochSatNavV2(self, line):
-
+        """Read one epoch of one satellite navigation messages RINEX V2
+            :param line: line of file (Str)
+        """
 
         #read epoch
         prn = "G" + line[0:2].replace(" ","0")#satellite PRN extanded system markar and 0 if necessary
@@ -134,7 +140,9 @@ class GalileoNavReader(NavReader):
             self.navigationDatas[prn] = navDatas
 
     def _readEpochSatNavV3(self, line):
-
+        """Read one epoch of one satellite navigation messages RINEX V3
+            :param line: line of file (Str)
+        """
 
         #read epoch
         prn = line[0:3]#satellite PRN extanded system markar and 0 if necessary
