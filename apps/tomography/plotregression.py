@@ -54,7 +54,7 @@ def plotRegression(b_est, b, fname, title, ep, sigma=None):
 
     axs.axis([b_min, b_max, b_min, b_max])
 
-    axs.set(xlabel="SWD [m]", ylabel=equation, title=title + ' R = {0:.5f}'.format(r) + ' ('+str(ep)+')')
+    axs.set(xlabel="SWD [m]", ylabel=equation, title=title + ' R = {0:.5f}'.format(r) + ' ('+str(ep.dt[0]) + "-" + str(ep.dt[1]) + "-" + str(ep.dt[2]) + " " + str(ep.dt[3]) +')')
 
     #plt.show()
     plt.savefig(fname)

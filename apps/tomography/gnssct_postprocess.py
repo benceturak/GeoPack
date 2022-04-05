@@ -16,6 +16,9 @@ from vector2matrix import vector2matrix
 from matrix2vector import matrix2vector
 from tomography import tomography
 import station
+from refractivityprofile import refractivityProfile
+from plotregression import plotRegression
+from plotrefractivity import plotRefractivity
 
 
 
@@ -110,8 +113,10 @@ class GNSSCT(object):
 
     def run(self):
 
-        train_A, train_b_w, train_b_h, stations = tomography(self.gridp, self.gridl, self.gridh, self.network, self.troposphere, self.mapping_function, self.ep, self.constellation, ())
+        train_A, train_b_w, train_b_h, stations, satellites = tomography(self.gridp, self.gridl, self.gridh, self.network, self.troposphere, self.mapping_function, self.ep, self.constellation, ())
 
+        stations = np.array(stations)
+        satellites = np.array(satellites)
         train_A_w = train_A
         train_A_h = train_A
         print(np.shape(train_A))
@@ -120,10 +125,16 @@ class GNSSCT(object):
         print(np.shape(train_A))
         #print(np.shape(train_b))
         print(np.shape(Nw_vec))
-
+        discarded_stations = np.empty((0,))
+        discarded_satellites = np.empty((0,))
+        print(np.shape(stations))
+        print(np.shape(satellites))
+        #print(satellites[0,1,2,3])
 
         numOfRaysBefore = np.shape(train_b_w)[0]
         first = True
+
+        i = 0
         while True:
             Nw_vec, iter_num = mart.mart(train_A_w, train_b_w, self.max_iter, Nw_vec, self.tolerance/100)
 
@@ -145,21 +156,52 @@ class GNSSCT(object):
             sigma = float(np.std(diff))
 
             numOfRay = len(train_b_w_est)
-
-
+            filename = "figures/regression/regression_train_estimated_"+str(self.ep)+"filter"+ str(i)+".png"
+            plotRegression(train_b_w_est, train_b_w*10**-6, filename, "Regression train-estimated (filter: " + str(i) +"):", self.ep, sigma)
             indeces = np.where(np.abs(diff) < 3*np.std(diff))[0]
             train_A_w = train_A_w[indeces,:]
             train_b_w = train_b_w[indeces]
+            #stations = stations[indeces]
+            #satellites = satellites[indeces]
+
+
 
             train_b_w_est = train_b_w_est[indeces]
 
+            discarded_indeces = np.where(np.abs(diff) >= 3*np.std(diff))[0]
 
+            discarded_stations = np.append(discarded_stations, stations[discarded_indeces])
+            discarded_satellites = np.append(discarded_satellites, satellites[discarded_indeces])
+
+            stations = stations[indeces]
+            satellites = satellites[indeces]
+
+            i = i +1
             if numOfRay == len(train_b_w_est):
                 break
-
+        fid = open('statistic.csv', 'a');
         numOfRaysAfter = np.shape(train_b_w)[0]
 
+        print(str(self.ep)+","+str(numOfRaysBefore)+","+str(numOfRaysAfter), file=fid)
+
+        fid.close()
+
+        #print(descarded_stations)
+
+        fid = open("discarded_rays/discarded_rays_"+str(self.ep)+".csv", 'a');
+
+        for i in range(0, len(discarded_stations)):
+            row = str(discarded_stations[i]) + "," + str(discarded_satellites[i])
+            print(row , file=fid)
+
+
+        fid.close()
+
+
+
         self.Nw_3D = vector2matrix(Nw_vec, (self.cellX, self.cellY, self.cellZ))
+        filename = "figures/refractivity/refractivity_"+ str(self.ep) + ".png"
+        plotRefractivity(filename, self.Nw_3D, self.ep)
 
         """while True:
             Nh_vec, iter_num = mart.mart(train_A_h, train_b_h, self.max_iter, Nh_vec, self.tolerance/100)

@@ -46,7 +46,7 @@ def tomography(gridp, gridl, gridh, network, tropo, mapping_function, ep, conste
     b_h = np.empty((0,))
 
     stations = []
-
+    satellites = []
 
     for sta in network.getStations():
 
@@ -231,6 +231,7 @@ def tomography(gridp, gridl, gridh, network, tropo, mapping_function, ep, conste
                         b_w = np.append(b_w, [swd*10**6])
                         b_h = np.append(b_h, [shd*10**6])
                         stations.append(sta.id)
+                        satellites.append(sat.prn)
 
 
 
@@ -279,7 +280,7 @@ def tomography(gridp, gridl, gridh, network, tropo, mapping_function, ep, conste
 
 
 
-    return (A, b_w, b_h, stations)
+    return (A, b_w, b_h, stations, satellites)
 
 
 
