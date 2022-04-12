@@ -110,7 +110,7 @@ class GNSSCT(object):
 
     def run(self):
 
-        train_A, train_b_w, train_b_h, stations = tomography(self.gridp, self.gridl, self.gridh, self.network, self.troposphere, self.mapping_function, self.ep, self.constellation, ())
+        train_A, train_b_w, train_b_h, stations, satellites = tomography(self.gridp, self.gridl, self.gridh, self.network, self.troposphere, self.mapping_function, self.ep, self.constellation, ())
 
         train_A_w = train_A
         train_A_h = train_A
