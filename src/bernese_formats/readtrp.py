@@ -365,9 +365,9 @@ if __name__ == "__main__":
 
     database = mysql.connector.connect(
     host = 'localhost',
-    user='gpsmet',
-    password='gpsmet2021',
-    database='gpsmet'
+    user='user',
+    password='password',
+    database='database'
     )
 
     reader = ReadTRP(database = database, table = 'TRPDELAY',type=DB)
