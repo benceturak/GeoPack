@@ -39,7 +39,8 @@ station_coords = "/home/bence/nrt/METEONET.CRD"
 vmf1grid_loc = "/home/bence/nrt/vmf1/"
 
 ep_start = epoch.Epoch(np.array([2022,3,1,0,0,0]))
-ep_end = epoch.Epoch(np.array([2022,3,14,23,0,0]))
+#ep_end = epoch.Epoch(np.array([2022,3,14,23,0,0]))
+ep_end = epoch.Epoch(np.array([2022,3,1,1,0,0]))
 
 ep = ep_start
 
