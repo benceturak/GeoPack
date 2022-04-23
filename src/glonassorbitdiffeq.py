@@ -10,7 +10,7 @@ def radius(x, y, z):
     return math.sqrt(x*x+y*y+z*z);
 
 def diffeq(t, w, axLS, ayLS, azLS):
-    """
+    """GLONASS orbit differential equations
             :param w: ndarray
                     [0]: x
                     [1]: y

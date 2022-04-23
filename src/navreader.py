@@ -1,8 +1,11 @@
 
 
 class NavReader(object):
+    """NavReader class for general GNSS system
+
+    """
     def __init__(self, fileName):
-        """NavReader condtructor
+        """NavReader constructor
 
         """
 
@@ -20,5 +23,8 @@ class NavReader(object):
             self.fid.close()
 
     def getSatellites(self):
+        """Get all of satellites
+            :return: satellites (Satellite) generator
+        """
         for n in self.navigationDatas:
             yield self.getSatellite(n)
