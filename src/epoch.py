@@ -149,13 +149,16 @@ class Epoch(object):
         m = int(self.dt[1])
         while m > 12:
             m -= 12
-        while m < 0:
+        while m <= 0:
             m += 12
 
+        if self.dt[2] == 0:
+            m = m -1
         daysOfMonth = self.months[m-1]
 
         if self.dt[0] % 4 == 0 and m == 1:#leap year, february
             daysOfMonth += 1
+
 
         while self.dt[2] > daysOfMonth:
             self.dt[2] -= daysOfMonth
