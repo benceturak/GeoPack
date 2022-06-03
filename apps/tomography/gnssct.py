@@ -257,8 +257,39 @@ if __name__ == "__main__":
 
     #initial_vals_file = source_dir + 'initial.npy'
 
-    x0_3D_w = np.load(initial_w_vals_file)
+    #x0_3D_w = np.load(initial_w_vals_file)
     x0_3D_h = np.load(initial_h_vals_file)
+    epForRequest = ep
+    while(1):
+        epForRequest = epForRequest - epoch.Epoch(np.array([0,0,0,1,0,0]))
+        sql = "SELECT HEIGHT, N_WET FROM RAOBSREFR WHERE DATE='"+epForRequest.date()+"' AND TIME='"+epForRequest.time()+"' AND WMOID="+ str(12843) +" ORDER BY HEIGHT ASC"
+        dbcursor = dbconfig.database.cursor()
+        dbcursor.execute(sql)
+
+        x0_3D_w_profile = np.empty((0,2))
+        for s in dbcursor.fetchall():
+
+            x0_3D_w_profile = np.append(x0_3D_w_profile, [[s[0], s[1]]], axis=0)
+        if(np.shape(x0_3D_w_profile)[0] > 0):
+            break
+
+    x0_3D_w = np.empty((len(gridp)-1,len(gridl)-1,len(gridh)-1))
+
+    nanret = False
+    for i in range(0,len(gridh)-1):
+        layer = x0_3D_w_profile[np.all((x0_3D_w_profile[:,0]>=gridh[i],x0_3D_w_profile[:,0]<=gridh[i+1]),axis=0)]
+        N = np.mean(layer[:,1])
+        if not np.isnan(N):
+            x0_3D_w[:,:,i] = N
+            if nanret:
+                x0_3D_w[:,:,i-1] = N
+                nanret = False
+
+        else:
+            if i > 0:
+                x0_3D_w[:,:,i] = x0_3D_w[:,:,i-1]
+            else:
+                nanret = True
 
     #x0 = matrix2vector(x0_3D)
 
