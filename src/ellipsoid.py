@@ -3,21 +3,40 @@ import numpy as np
 
 
 class Ellipsoid(object):
+    """
+        Ellipsoid class to define general ellipsoidal coordinate system
+    """
 
     def __init__(self):
+        """ Ellipsoid constructor
+
+        """
         pass
 
     @property
     def e(self):
+        """First eccentricity
+
+        """
         return math.sqrt((self.a**2 - self.b**2)/self.a**2)
     @property
     def ec(self):
+        """Second eccentricity
+
+        """
         return math.sqrt((self.a**2 - self.b**2)/self.b**2)
     @property
     def f(self):
+        """Flattening
+
+        """
         return (self.a - self.b)/self.a
 
     def getXYZ(self, plh):
+        """Get cartesian (X,Y,Z) coordinates from geographical (longitude, latitude, altitude) coordinates
+                :param plh: geographical coordinates (numpy array (1,3)) [[phi, lambda, h]]
+                :return: cartesian coordinates (numpy array (1,3)) [[x, y, z]]
+        """
         #from point import Point
         #M = self.a*(1-self.e**2)/(1 - self.e**2*math.sin(plh.phi))**(3/2)
         N = self.a/math.sqrt(1 - self.e**2*math.sin(plh[0,0])**2)
@@ -30,6 +49,10 @@ class Ellipsoid(object):
 
 
     def getPLH(self, xyz):
+        """Get geographical (longitude, latitude, altitude) coordinates from cartesian (X,Y,Z) coordinates
+                :param xyz: cartesian coordinates (numpy array (1,3)) [[x, y, z]]
+                :return: geographical coordinates (numpy array (1,3)) [[phi, lambda, h]]
+        """
         p = math.sqrt(xyz[0,0]**2 + xyz[1,0]**2)
         P_l = math.atan(xyz[2,0]/(p*(1 - self.e**2)))
         d = 1
@@ -51,9 +74,15 @@ class Ellipsoid(object):
         return np.array([[P], [L], [h]])
 
 class WGS84(Ellipsoid):
+    """
+        WGS84 class to define WGS84 ellipsoidal coordinate system
+    """
     a = 6378137.000#meter
     b = 6356752.314#meter
 
 class IUGG67(Ellipsoid):
+    """
+        IUGG67 class to define IUGG67 ellipsoidal coordinate system
+    """
     a = 6378160.000#meter
     b = 6356774.516#meter

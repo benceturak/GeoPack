@@ -3,9 +3,19 @@ import ellipsoid
 XYZ = 1
 PLH = 2
 class Point(object):
+    """Point class to store and make calculations on points in cartesian and geographical coordinate system
+        :param id: point ID (Str), default: ''
+        :param code: point coode (Str), default: ''
+        :param coord: coordinates (cartesian or geographical) (numpy array (3,1)), default: [[0, 0, 0]]
+        :param type: type of coordinate system (int), variable: XYZ/PLH , default: XYZ
+        :param system: base ellipsoid (Ellipsoid object), default: None
+    """
 
 
     def __init__(self, id='', code='', coord=np.array([[0.0],[0.0],[0.0]]), type=XYZ, system=None):
+        """Point constructor
+
+        """
         if not isinstance(id, str):
             raise TypeError("id must be String!")
         if np.shape(coord) != (3, 1) and np.shape(coord) != (1, 3) and np.shape(coord) != (3,):
@@ -41,6 +51,9 @@ class Point(object):
 
         self.system = system
     def getXYZ(self):
+        """get coordinates in cartesian system. For the transformation to set up system is required
+            :return: cartesian coordinates (numpy array (3,1))
+        """
         if np.shape(self._xyz) != (3, 1):
             if self.system != None:
                 self._xyz = self.system.getXYZ(self._plh)
@@ -49,6 +62,9 @@ class Point(object):
         return self._xyz
 
     def getPLH(self):
+        """get coordinates in ellipsoidal system. For the transformation to set up system is required
+            :return: ellipsoidal coordinates (numpy array (3,1))
+        """
         if np.shape(self._plh) != (3, 1):
 
             if self.system != None:
@@ -81,6 +97,10 @@ class Point(object):
         return self._id
 
     def dist(self, other):
+        """get distance from another Point
+            :param other: point (Point object)
+            :return: distance between the two points (float)
+        """
         if isinstance(other, Point):
             xyz1 = self.getXYZ()
             xyz2 = other.getXYZ()
