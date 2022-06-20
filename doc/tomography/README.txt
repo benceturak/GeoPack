@@ -21,8 +21,13 @@ The grid files define the tomography voxels.
 The VMF1 parameters grid files hes to be given in this directory and the name format has to be:
 YYYY/VMFG_YYYYMMDD.Hhh'
 The script able to use more VMF1 grid file for the interpollation.
+Sample VMF1 grid files and orbits in the input_sample directory.
 
+For the processing a mysql database required. To establish the database structure a sample database provided, with sample data.
+It includes sample output wet refractivity values in the 3DREFRACTIVITY_SAMPLE table.
+The output of the tomographical procession will be saved to the 3D_REFRACTIVITY_W table;
 The tropospheric delay data come from mysql database and the wet refractivity results are saved in the database.
+
 Example:
 
 python3 gnssct.py --satellites=tomography/CDU22066_00.SP3 --stations=tomography/METEONET.CRD --gridp=tomography/gridp.csv --gridl=tomography/gridl.csv --gridh=tomography/gridh.csv --vmf1loc=tomography/vmf1/ --epoch=2022-04-23-8-0-0 --initial_w=tomography/initial_w.npy --initial_h=tomography/initial_h.npy  --database=dbconfig
