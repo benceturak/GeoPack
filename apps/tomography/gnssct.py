@@ -191,7 +191,7 @@ if __name__ == "__main__":
     for o, v in opts:
         if o == '--satellites' or o == '-s':
             sats = v
-            brdc_mixed = v
+            brdc_mixed = v.slpit(",")
         elif o == '--stations' or o == '-S':
             station_coords = v
         elif o == '--gridp':
@@ -297,7 +297,14 @@ if __name__ == "__main__":
 
     network = readcrd.ReadCRD(station_coords).network
     #brdc = broadcastnavreader.BroadcastNavReader(brdc_mixed)
-    brdc = sp3reader.SP3Reader(brdc_mixed)
+
+    for brdc_file in brdc_mixed:
+        try:
+            brdc = sp3reader.SP3Reader(brdc_file)
+            break
+        except FileNotFoundError as err:
+            print(err)
+            continue
 
     #print(brdc.getSatellite('G01'))
 

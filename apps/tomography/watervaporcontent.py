@@ -1,8 +1,6 @@
 import getopt
 import importlib
 import sys
-from tkinter import W
-
 sys.path.append("../../src")
 from readdb import ReadDB
 import epoch
