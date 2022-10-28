@@ -16,6 +16,7 @@ from vector2matrix import vector2matrix
 from matrix2vector import matrix2vector
 from tomography import tomography
 import station
+import traceback
 
 
 
@@ -191,7 +192,7 @@ if __name__ == "__main__":
     for o, v in opts:
         if o == '--satellites' or o == '-s':
             sats = v
-            brdc_mixed = v.slpit(",")
+            brdc_mixed = v.split("|")
         elif o == '--stations' or o == '-S':
             station_coords = v
         elif o == '--gridp':
@@ -303,7 +304,8 @@ if __name__ == "__main__":
             brdc = sp3reader.SP3Reader(brdc_file)
             break
         except FileNotFoundError as err:
-            print(err)
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            traceback.print_tb(exc_traceback)
             continue
 
     #print(brdc.getSatellite('G01'))

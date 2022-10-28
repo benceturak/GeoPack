@@ -92,13 +92,9 @@ for i in range(0, np.shape(temp_at_coords_layers)[1]):
     layer = griddata(coords, temp_at_coords_layers[:,i], (interp_gridp.T, interp_gridl.T), method="nearest")
     temp_model_3d[:,:,i] = layer
     #print(layer)
-print(np.shape(temp_model_3d))
 
 psat=10**(10.79574*(1-273.16/temp_model_3d)-5.02800*np.log10(temp_model_3d/273.16)+1.50475E-4*(1-(10**(-8.2969*(temp_model_3d/273.16-1))))+4.2873E-4*(10**(4.76955*(1-273.16/((temp_model_3d))))-1)+0.78614);
 rows = psat*100/(461.5*temp_model_3d)
-print("PSAT")
-print(rows)
-print("###################")
 Nw, p, l, h = db.getNwAtEp(ep)
 WVdensity = Nw/((k2 - k1*Rd/Rw)*Rw + k3*Rw/temp_model_3d)
 cursor = dbconfig.database.cursor()
@@ -114,7 +110,6 @@ for i in range(0,np.shape(gridp_center)[0]):
         for k in range(0,np.shape(gridh_center)[0]):
             params.append((ep.date(), ep.time(), gridp_center[i], gridl_center[j], gridh_center[k], WVdensity[i, j, k]))
 
-print(WVdensity)
 cursor.executemany(sql, params)
 
 dbconfig.database.commit()
