@@ -301,6 +301,7 @@ if __name__ == "__main__":
 
     for brdc_file in brdc_mixed:
         try:
+            print(brdc_file)
             brdc = sp3reader.SP3Reader(brdc_file)
             break
         except FileNotFoundError as err:
