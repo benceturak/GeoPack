@@ -304,7 +304,7 @@ if __name__ == "__main__":
             print(brdc_file)
             brdc = sp3reader.SP3Reader(brdc_file)
             break
-        except FileNotFoundError as err:
+        except Exception as err:
             exc_type, exc_value, exc_traceback = sys.exc_info()
             traceback.print_tb(exc_traceback)
             continue
