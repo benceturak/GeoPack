@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 output = {"data": {}, "log": {"error": [], "warning": [], "info": []}}
+import dbconfig
 try:
     import sys
     import traceback

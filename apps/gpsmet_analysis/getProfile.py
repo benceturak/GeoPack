@@ -43,6 +43,9 @@ try:
     if type == 'Nw' or type == 'NW':
         profile = database.getNwProfile(lat, lon, ep, kind)
         output['log']['info'].append('Wet Refractivity(Nw) profile at '+str(ep))
+    elif type == 'WVD' or type == 'wvd':
+        profile = database.getWVDProfile(lat, lon, ep, kind)
+        output['log']['info'].append('Wet Refractivity(Nw) profile at '+str(ep))
 
     z = []
     val = []

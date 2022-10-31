@@ -194,6 +194,62 @@ class ReadDB(object):
 
         return (Nw, x, y, z)
 
+    def getNw(self, lat=(), lon=(), alt=(), fr=None, to=None):
+
+
+        sql = 'SELECT DATE, TIME, LAT, LON, ALT, WVDENSITY FROM 3DWVDENSITY ' + self._getTimeframeStatement(fr, to) + ' AND ' + self._getLocationLatStatement(lat) + ' AND ' + self._getLocationLonStatement(lon) + ' AND ' + self._getLocationAltStatement(alt)
+
+        dbcursor = self._database.cursor()
+
+        dbcursor.execute(sql)
+
+        res = np.empty((0,5))
+
+        for s in dbcursor.fetchall():
+            time = s[1].__str__().split(':')
+            ep = Epoch(np.array([s[0].year, s[0].month, s[0].day, int(time[0]), int(time[1]), int(time[2])]))
+            res = np.append(res, [[ep, s[2], s[3], s[4], s[5]]], axis=0)
+
+        return res
+
+    def getWVDAtEp(self, ep):
+
+        sql = "SELECT DATE, TIME, LAT, LON, ALT, WVDENSITY FROM 3DWVDENSITY WHERE DATE='"+ep.date()+"' AND TIME='"+ep.time()+"'"
+        dbcursor = self._database.cursor()
+
+        dbcursor.execute(sql)
+
+        res = np.empty((0,5))
+
+        x = np.empty((0,))
+        y = np.empty((0,))
+        z = np.empty((0,))
+
+        Nw_rows = np.empty((0,4))
+
+        for s in dbcursor.fetchall():
+            if not s[2] in x:
+                x = np.append(x, s[2])
+            if not s[3] in y:
+                y = np.append(y, s[3])
+            if not s[4] in z:
+                z = np.append(z, s[4])
+            Nw_rows = np.append(Nw_rows, [[s[2], s[3], s[4], s[5]]], axis=0)
+        np.sort(x)
+        np.sort(y)
+        np.sort(z)
+
+
+        Nw = np.empty((len(x),len(y),len(z)))
+
+        for xv in x:
+            for yv in y:
+                for zv in z:
+                    i = np.all(np.array([Nw_rows[:,0] == xv, Nw_rows[:,1] == yv, Nw_rows[:,2] == zv]), axis=0)
+                    Nw[np.where(x == xv)[0], np.where(y == yv)[0], np.where(z == zv)[0]] = Nw_rows[i,3]
+
+        return (Nw, x, y, z)
+
     def getProfile(self, data, x, y, z, lat, lon, kind):
         profile = np.empty((0,2))
 
@@ -210,6 +266,11 @@ class ReadDB(object):
         Nw, x, y, z = self.getNwAtEp(ep)
 
         return self.getProfile(Nw, x, y, z, lat, lon, kind)
+
+    def getWVDProfile(self, lat, lon, ep, kind='linear'):
+        WVD, x, y, z = self.getWVDAtEp(ep)
+
+        return self.getProfile(WVD, x, y, z, lat, lon, kind)
 
 
 

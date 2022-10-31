@@ -24,6 +24,8 @@ try:
             ep = Epoch(np.array([int(dt[0]),int(dt[1]),int(dt[2]),int(dt[3]),int(dt[4]),int(dt[5])]))
         elif o == '--type' or o == '-T':
             type = v
+        elif o == '--method' or o == '-m':
+            kind = v
         elif  o == '--help' or o == '-h':
             print("Usage:")
 
@@ -37,6 +39,14 @@ try:
         model, x, y, z = database.getNwAtEp(ep)
         #print(model)
         output['log']['info'].append('Wet Refractivity 3D model at '+str(ep))
+        output['data']['grid']
+        output['data']['grid']['x'] = x.tolist()
+        output['data']['grid']['y'] = y.tolist()
+        output['data']['grid']['z'] = z.tolist()
+    elif type == 'WVD' or type == 'wvd':
+        model, x, y, z = database.getWVDAtEp(ep)
+        #print(model)
+        output['log']['info'].append('Water Vapor Density 3D model at '+str(ep))
         output['data']['grid']
         output['data']['grid']['x'] = x.tolist()
         output['data']['grid']['y'] = y.tolist()
