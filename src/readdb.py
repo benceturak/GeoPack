@@ -45,6 +45,14 @@ class ReadDB(object):
         else:
             return " (DATE='"+ep_min.date() + "' AND TIME>='"+ep_min.time()+"' AND TIME<='"+ep_max.time()+"')"
 
+    def _getTimeframeStatementMax(self, ep_max):
+
+        middle_days_st = " (DATE<'"+ ep_max.date()+"')"
+
+        last_day_st = " (DATE='"+ep_max.date() + "' AND TIME<='"+ep_max.time()+"')"
+
+        return " (" + middle_days_st + " OR" + last_day_st + ")"
+
 
 
     def _getAllStations(self):
@@ -98,9 +106,9 @@ class ReadDB(object):
 
         return res
 
-    def getLastRAOBSep(self, station_id):
+    def getRAOBSPressAtep(self, station_id, ep):
 
-        sql = "SELECT DATE, TIME FROM RAOBSREFR WHERE WMOID="+station_id+" ORDER BY `DATE` DESC, `TIME` DESC LIMIT 1;"
+        sql = "SELECT HEIGHT, PRESSURE FROM RAOBSREFR WHERE DATE='"+ep.date()+"' AND TIME='"+ep.time()+"' AND WMOID="+ str(station_id) +" ORDER BY HEIGHT ASC"
 
         dbcursor = self._database.cursor()
 
@@ -108,14 +116,47 @@ class ReadDB(object):
 
         res = np.empty((0,2))
         for s in dbcursor.fetchall():
-            
 
-            date = str(s[0]).split("-")
-            time = str(s[1]).split(":")
+            res = np.append(res, [[s[0], s[1]]], axis=0)
 
-            return Epoch(np.array([s[0].year, s[0].month, s[0].day, int(time[0]), int(time[1]), int(time[2])]))
+        return res
 
-        return False
+    def getLastRAOBSep(self, station_id, to=None):
+        if to is None:
+            sql = "SELECT DATE, TIME FROM RAOBSREFR WHERE WMOID="+station_id+" ORDER BY `DATE` DESC, `TIME` DESC LIMIT 1;"
+
+            dbcursor = self._database.cursor()
+
+            dbcursor.execute(sql)
+
+            res = np.empty((0,2))
+            for s in dbcursor.fetchall():
+                
+
+                date = str(s[0]).split("-")
+                time = str(s[1]).split(":")
+
+                return Epoch(np.array([s[0].year, s[0].month, s[0].day, int(time[0]), int(time[1]), int(time[2])]))
+
+            return False
+        else:
+            sql = "SELECT DATE, TIME FROM RAOBSREFR WHERE WMOID="+station_id+" AND " + self._getTimeframeStatementMax(to) + " ORDER BY `DATE` DESC, `TIME` DESC LIMIT 1;"
+
+            dbcursor = self._database.cursor()
+
+            dbcursor.execute(sql)
+
+            res = np.empty((0,2))
+            for s in dbcursor.fetchall():
+                
+
+                date = str(s[0]).split("-")
+                time = str(s[1]).split(":")
+
+                return Epoch(np.array([s[0].year, s[0].month, s[0].day, int(time[0]), int(time[1]), int(time[2])]))
+
+            return False
+
 
 
 
