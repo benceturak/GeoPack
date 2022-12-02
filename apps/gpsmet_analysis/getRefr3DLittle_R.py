@@ -100,14 +100,12 @@ try:
 
     if True:
         model, x, y, z = database.getNwAtEp(ep)
-        print(model)
         for i in range(0,len(x)):
             for j in range(0,len(y)):
                 sta = Little_RStation(lat=x[i], lon=y[j], alt=0.0, source="BUTE GNSS-meteorology nrt procession", epoch=ep, fm_code="FM-116")
                 for k in range(0, len(z)):
                     
                     sta.add_data(P=np.array([press_model_3d[i,j,k], 0]), H=np.array([z[k], 0]), T=np.array([temp_model_3d[i,j,k], 0]), Td=np.array([model[i, j, k], 0]))
-                print(i,j,k)
                 writer.addStation(sta)
         writer.write()
         #print(model)
