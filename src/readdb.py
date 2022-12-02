@@ -120,6 +120,36 @@ class ReadDB(object):
             res = np.append(res, [[s[0], s[1]]], axis=0)
 
         return res
+    
+    def getRAOBSNdryAtep(self, station_id, ep):
+
+        sql = "SELECT HEIGHT, N_DRY FROM RAOBSREFR WHERE DATE='"+ep.date()+"' AND TIME='"+ep.time()+"' AND WMOID="+ str(station_id) +" ORDER BY HEIGHT ASC"
+
+        dbcursor = self._database.cursor()
+
+        dbcursor.execute(sql)
+
+        res = np.empty((0,2))
+        for s in dbcursor.fetchall():
+
+            res = np.append(res, [[s[0], s[1]]], axis=0)
+
+        return res
+
+    def getRAOBSNwetAtep(self, station_id, ep):
+
+        sql = "SELECT HEIGHT, N_WET FROM RAOBSREFR WHERE DATE='"+ep.date()+"' AND TIME='"+ep.time()+"' AND WMOID="+ str(station_id) +" ORDER BY HEIGHT ASC"
+
+        dbcursor = self._database.cursor()
+
+        dbcursor.execute(sql)
+
+        res = np.empty((0,2))
+        for s in dbcursor.fetchall():
+
+            res = np.append(res, [[s[0], s[1]]], axis=0)
+
+        return res
 
     def getLastRAOBSep(self, station_id, to=None):
         if to is None:
