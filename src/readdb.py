@@ -416,13 +416,26 @@ class ReadDB(object):
         types = self.getStationTypes()
         if station_type == None:
             sql = "SELECT STATION, LAT, LON, HEIGHT, TYPE FROM STATION"
-        else:
-            sql = "SELECT STATION, LAT, LON, HEIGHT, TYPE FROM STATION WHERE TYPE="+str(list(types.keys())[list(types.values()).index(station_type)])
-        dbcursor = self._database.cursor()
-        dbcursor.execute(sql)
+            dbcursor = self._database.cursor()
+            dbcursor.execute(sql)
 
-        for sta in dbcursor.fetchall():
-            yield point.Point(id=sta[0], code=types[str(sta[4])], coord=np.array([sta[1], sta[2], sta[3]]), type=point.PLH, system=ellipsoid.WGS84())
+            for sta in dbcursor.fetchall():
+                yield point.Point(id=sta[0], code=types[str(sta[4])], coord=np.array([sta[1], sta[2], sta[3]]), type=point.PLH, system=ellipsoid.WGS84())
+        elif isinstance(station_type, str):
+            sql = "SELECT STATION, LAT, LON, HEIGHT, TYPE FROM STATION WHERE TYPE="+str(list(types.keys())[list(types.values()).index(station_type)])
+            dbcursor = self._database.cursor()
+            dbcursor.execute(sql)
+
+            for sta in dbcursor.fetchall():
+                yield point.Point(id=sta[0], code=types[str(sta[4])], coord=np.array([sta[1], sta[2], sta[3]]), type=point.PLH, system=ellipsoid.WGS84())
+        else:
+            for stt in station_type:
+                sql = "SELECT STATION, LAT, LON, HEIGHT, TYPE FROM STATION WHERE TYPE="+str(list(types.keys())[list(types.values()).index(stt)])
+                dbcursor = self._database.cursor()
+                dbcursor.execute(sql)
+
+                for sta in dbcursor.fetchall():
+                    yield point.Point(id=sta[0], code=types[str(sta[4])], coord=np.array([sta[1], sta[2], sta[3]]), type=point.PLH, system=ellipsoid.WGS84())
 
 
     def getStation(self, id4d):
