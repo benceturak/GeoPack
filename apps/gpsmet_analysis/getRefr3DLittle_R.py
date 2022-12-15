@@ -99,7 +99,7 @@ try:
                 sta = Little_RStation(lat=gridp_center[i], lon=gridl_center[j], alt=0.0, source="BUTE GNSS-meteorology nrt procession", epoch=ep, fm_code="FM-116")
                 for k in range(0, len(gridh_center)):
                     
-                    sta.add_data(P=np.array([press_model_3d[i,j,k], 0]), H=np.array([gridh_center[k], 0]), T=np.array([temp_model_3d[i,j,k], 0]), Td=np.array([Nw_model[i, j, k] + Nh_model_3d[i, j, k], 0]))
+                    sta.add_data(P=np.array([press_model_3d[i,j,k]*10, 0]), H=np.array([gridh_center[k], 0]), T=np.array([temp_model_3d[i,j,k], 0]), Td=np.array([Nw_model[i, j, k] + Nh_model_3d[i, j, k], 0]))
                 writer.addStation(sta)
         writer.write()
         #print(model)
