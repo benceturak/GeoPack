@@ -41,6 +41,9 @@ try:
     #fr = Epoch(np.array([2021,11,1,2,0,0]))
     #to = Epoch(np.array([2021,11,1,3,0,0]))
 
+    if stations == ['',]:
+        stations = None
+
 
 
     if type == 'ZWD' or type == 'zwd':
