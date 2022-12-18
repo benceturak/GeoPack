@@ -44,7 +44,7 @@ try:
 
     for i in database.getStations():
 
-        output['data'].append({'id': i.id, 'coords': [i.getPLH()[0,0],i.getPLH()[1,0],i.getPLH()[2,0]], 'network': i.code})
+        output['data'].append({'id': i.id, 'coords': [i.getPLH()[0,0],i.getPLH()[1,0],i.getPLH()[2,0]], 'network': i.code, 'location': i.other})
 
 
 

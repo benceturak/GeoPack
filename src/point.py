@@ -12,7 +12,7 @@ class Point(object):
     """
 
 
-    def __init__(self, id='', code='', coord=np.array([[0.0],[0.0],[0.0]]), type=XYZ, system=None):
+    def __init__(self, id='', code='', coord=np.array([[0.0],[0.0],[0.0]]), type=XYZ, system=None, other=None):
         """Point constructor
 
         """
@@ -50,6 +50,7 @@ class Point(object):
 
 
         self.system = system
+        self._other = other
     def getXYZ(self):
         """get coordinates in cartesian system. For the transformation to set up system is required
             :return: cartesian coordinates (numpy array (3,1))
@@ -95,6 +96,10 @@ class Point(object):
     @property
     def id(self):
         return self._id
+
+    @property
+    def other(self):
+        return self._other
 
     def dist(self, other):
         """get distance from another Point
