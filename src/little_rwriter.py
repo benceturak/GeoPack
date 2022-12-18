@@ -61,7 +61,7 @@ class Little_RWriter(object):
             :return: formatted header (Str)
         """
 
-        header = "{:20.5f}{:20.5f}{:>40}{:>40}{:>40}{:>40}{:20.5f}{:10d}{:10d}{:10d}{:10d}{:10d}{:>10}{:>10}{:>10}{:10d}{:10d}{:>20}{:13.5f}{:7d}{:13.5f}{:7d}{:13.5f}{:7d}{:13.5f}{:7d}{:13.5f}{:7d}{:13.5f}{:7d}{:13.5f}{:7d}{:13.5f}{:7d}{:13.5f}{:7d}{:13.5f}{:7d}{:13.5f}{:7d}{:13.5f}{:7d}{:13.5f}{:7d}{:13.5f}{:7d}"
+        header = "{:20.5f}{:20.5f}{:<40}{:<40}{:<40}{:<40}{:20.5f}{:10d}{:10d}{:10d}{:10d}{:10d}{:>10}{:>10}{:>10}{:10d}{:10d}{:>20}{:13.5f}{:7d}{:13.5f}{:7d}{:13.5f}{:7d}{:13.5f}{:7d}{:13.5f}{:7d}{:13.5f}{:7d}{:13.5f}{:7d}{:13.5f}{:7d}{:13.5f}{:7d}{:13.5f}{:7d}{:13.5f}{:7d}{:13.5f}{:7d}{:13.5f}{:7d}{:13.5f}{:7d}"
 
         return header.format(lat, lon, id, name, fm_code, source, elevation, valid_fields, errors, warnings, seq_num, duplicates, sounding, bogus, discard, unix_time, julian_day, date, sea_level_pressure[0], int(sea_level_pressure[1]), reference_pressure[0], int(reference_pressure[1]), ground_temperature[0], int(ground_temperature[1]), sea_surface_temperature[0], int(sea_surface_temperature[1]), surface_pressure[0], int(surface_pressure[1]), precipitation[0], int(precipitation[1]), max_temperature[0], int(max_temperature[1]), min_temperature[0], int(min_temperature[1]), min_night_temperature[0], int(min_night_temperature[1]), pressure_tendancy_3H[0], int(pressure_tendancy_3H[1]), pressure_tendancy_24H[0], int(pressure_tendancy_24H[1]), cloud_cover[0], int(cloud_cover[1]), ceiling[0], int(ceiling[1]), PWpZTD[0], int(PWpZTD[1]))
 
@@ -85,8 +85,7 @@ class Little_RWriter(object):
             :return: formatted data row
         """
         data = "{:13.5f}{:7d}{:13.5f}{:7d}{:13.5f}{:7d}{:13.5f}{:7d}{:13.5f}{:7d}{:13.5f}{:7d}{:13.5f}{:7d}{:13.5f}{:7d}{:13.5f}{:7d}{:13.5f}{:7d}"
-
-        return data.format(P[0], P[1], H[0], H[1], T[0], T[1], Td[0], Td[1], Sp[0], Sp[1], Dr[0], Dr[1], U[0], U[1], V[0], V[1], RH[0], RH[1], Th[0], Th[1])
+        return data.format(P[0], int(P[1]), H[0], int(H[1]), T[0], int(T[1]), Td[0], int(Td[1]), Sp[0], int(Sp[1]), Dr[0], int(Dr[1]), U[0], int(U[1]), V[0], int(V[1]), RH[0], int(RH[1]), Th[0], int(Th[1]))
     def end(self):
         """Set and format end row
 
@@ -113,7 +112,6 @@ class Little_RWriter(object):
         """
 
         with open(self.fname, 'x') as fid:
-
             for s in self._stations:
                 if s._fm_code == 'FM-114':
                     date = "{:4d}{:02d}{:02d}{:02d}{:02d}{:02d}".format(s.epoch.dt[0], s.epoch.dt[1], s.epoch.dt[2], s.epoch.dt[3], s.epoch.dt[4], s.epoch.dt[5])  #str(s.epoch.dt[0]) + str(s.epoch.dt[1]) + str(s.epoch.dt[2]) + str(s.epoch.dt[3]) + str(s.epoch.dt[4]) + str(s.epoch.dt[5])
@@ -121,7 +119,18 @@ class Little_RWriter(object):
 
                     print(self.data(), file=fid)
                     print(self.end(), file=fid)
-                    print(self.tail(valid_fields=1), file=fid)
+                    print(self.tail(valid_fields=0), file=fid)
+
+                elif s._fm_code == 'FM-116':
+                    date = "{:4d}{:02d}{:02d}{:02d}{:02d}{:02d}".format(s.epoch.dt[0], s.epoch.dt[1], s.epoch.dt[2], s.epoch.dt[3], s.epoch.dt[4], s.epoch.dt[5])
+                    print(self.header(lat=s.lat, lon=s.lon, fm_code=s.fm_code, source=s.source, date=date), file=fid)
+                    valid_fields = 0
+                    for d in s.data:
+                        print(self.data(P=d['P'], H=d['H'], T=d['T'], Td=d['Td']), file=fid)
+                        valid_fields += 4
+                    print(self.end(), file=fid)
+                    print(self.tail(valid_fields=valid_fields), file=fid)
+
                 else:
                     pass
 
@@ -141,9 +150,9 @@ class Little_RStation(object):
         :param fm-code: type of observation (Str)
 
     """
-    fm_code_list = {'FM-114': 'GPSZD'}
+    fm_code_list = {'FM-114': 'GPSZTD', 'FM-116': 'GPSRF'}
 
-    def __init__(self, lat, lon, alt, id, name, epoch, source, fm_code='FM-114'):
+    def __init__(self, lat=-888888, lon=-888888, alt=-888888, id='', name='', epoch='', source='', fm_code='FM-114'):
         """Little_RStation constructor
 
         """
@@ -158,8 +167,7 @@ class Little_RStation(object):
 
         self._fm_code = fm_code
 
-        self._data = np.empty((0,10))
-        self._QC = np.empty((0,10))
+        self._data = []
 
 
     @property
@@ -170,7 +178,14 @@ class Little_RStation(object):
         self.ztd = ztd
 
 
-    def add_data(self, data=np.array([[-888888, -888888, -888888, -888888, -888888, -888888, -888888, -888888, -888888, -888888]]), QC=np.array([[0, 0, 0, 0, 0, 0, 0, 0, 0, 0]])):pass
+    def add_data(self, P=np.array([-888888, 0]), H=np.array([-888888, 0]), T=np.array([-888888, 0]), Td=np.array([-888888, 0]), Sp=np.array([-888888, 0]), Dr=np.array([-888888, 0]), U=np.array([-888888, 0]), V=np.array([-888888, 0]), RH=np.array([-888888, 0]), Th=np.array([-888888, 0])):
+        
+        
+        self._data.append({'P': P, 'H': H, 'T': T, 'Td': Td, 'Sp': Sp, 'Dr': Dr, 'U': U, 'V': V, 'RH': RH, 'Th': Th})
+    @property
+    def data(self):
+        for d in self._data:
+            yield d
 
 
 

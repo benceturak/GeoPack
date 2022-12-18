@@ -12,37 +12,28 @@ try:
     import getopt
     import importlib
     import json
-    #opts, args = getopt.getopt(sys.argv[1:], 'p:l:e:h:T:m:', ['phi=', 'lam=', 'epoch=', 'type=', 'method=', 'help'])
-    #stations = None
-    #type = "Nw"
-    #kind = "linear"
+    opts, args = getopt.getopt(sys.argv[1:], 'h:t:', ['type=', 'help'])
+    stations = None
 
 
-    #for o, v in opts:
-    #    if o == '--phi' or o == '-p':
-    #        lat = float(v)
-    #    elif o == '--lam' or o == '-l':
-    #        lon = float(v)
-    #    elif o == '--epoch' or o == '-e':
-    #        dt = v.split('-')
+    type = None
+    for o, v in opts:
+        if o == '--type' or o == '-t':
+            type = v.split('|')
+        elif  o == '--help' or o == '-h':
+            print("Usage:")
 
-    #        ep = Epoch(np.array([int(dt[0]),int(dt[1]),int(dt[2]),int(dt[3]),int(dt[4]),int(dt[5])]))
-    #    elif o == '--type' or o == '-T':
-    #        type = v
-    #    elif o == '--method' or o == '-m':
-    #        kind = v
-    #    elif  o == '--help' or o == '-h':
-    #        print("Usage:")
+    if type == ['',]:
+        type = None
+
 
 
     database = ReadDB(database=dbconfig.database)
 
-    #fr = Epoch(np.array([2021,11,1,2,0,0]))
-    #to = Epoch(np.array([2021,11,1,3,0,0]))
 
 
 
-    for i in database.getStations():
+    for i in database.getStations(type):
 
         output['data'].append({'id': i.id, 'coords': [i.getPLH()[0,0],i.getPLH()[1,0],i.getPLH()[2,0]], 'network': i.code, 'location': i.other})
 

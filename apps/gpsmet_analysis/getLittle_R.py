@@ -38,7 +38,8 @@ try:
 
     database = ReadDB(database=dbconfig.database)
 
-
+    if stations == ['',]:
+        stations = None
 
     #fr = Epoch(np.array([2021,11,1,2,0,0]))
     #to = Epoch(np.array([2021,11,1,3,0,0]))
@@ -49,7 +50,7 @@ try:
             p = database.getStation(i[0])
             plh = p.getPLH()[:,0]
             sta = Little_RStation(lat=plh[0], lon=plh[1], alt=plh[2], id=p.id, name=p.id, source="BUTE GNSS-meteorology nrt procession", epoch=i[1])
-            sta.setZTD(i[2])
+            sta.setZTD(i[2]*100)
             writer.addStation(sta)
         except ValueError as er:
             print(er)

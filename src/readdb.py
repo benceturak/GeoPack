@@ -45,6 +45,14 @@ class ReadDB(object):
         else:
             return " (DATE='"+ep_min.date() + "' AND TIME>='"+ep_min.time()+"' AND TIME<='"+ep_max.time()+"')"
 
+    def _getTimeframeStatementMax(self, ep_max):
+
+        middle_days_st = " (DATE<'"+ ep_max.date()+"')"
+
+        last_day_st = " (DATE='"+ep_max.date() + "' AND TIME<='"+ep_max.time()+"')"
+
+        return " (" + middle_days_st + " OR" + last_day_st + ")"
+
 
 
     def _getAllStations(self):
@@ -98,9 +106,9 @@ class ReadDB(object):
 
         return res
 
-    def getLastRAOBSep(self, station_id):
+    def getRAOBSPressAtep(self, station_id, ep):
 
-        sql = "SELECT DATE, TIME FROM RAOBSREFR WHERE WMOID="+station_id+" ORDER BY `DATE` DESC, `TIME` DESC LIMIT 1;"
+        sql = "SELECT HEIGHT, PRESSURE FROM RAOBSREFR WHERE DATE='"+ep.date()+"' AND TIME='"+ep.time()+"' AND WMOID="+ str(station_id) +" ORDER BY HEIGHT ASC"
 
         dbcursor = self._database.cursor()
 
@@ -108,14 +116,77 @@ class ReadDB(object):
 
         res = np.empty((0,2))
         for s in dbcursor.fetchall():
-            
 
-            date = str(s[0]).split("-")
-            time = str(s[1]).split(":")
+            res = np.append(res, [[s[0], s[1]]], axis=0)
 
-            return Epoch(np.array([s[0].year, s[0].month, s[0].day, int(time[0]), int(time[1]), int(time[2])]))
+        return res
+    
+    def getRAOBSNdryAtep(self, station_id, ep):
 
-        return False
+        sql = "SELECT HEIGHT, N_DRY FROM RAOBSREFR WHERE DATE='"+ep.date()+"' AND TIME='"+ep.time()+"' AND WMOID="+ str(station_id) +" ORDER BY HEIGHT ASC"
+
+        dbcursor = self._database.cursor()
+
+        dbcursor.execute(sql)
+
+        res = np.empty((0,2))
+        for s in dbcursor.fetchall():
+
+            res = np.append(res, [[s[0], s[1]]], axis=0)
+
+        return res
+
+    def getRAOBSNwetAtep(self, station_id, ep):
+
+        sql = "SELECT HEIGHT, N_WET FROM RAOBSREFR WHERE DATE='"+ep.date()+"' AND TIME='"+ep.time()+"' AND WMOID="+ str(station_id) +" ORDER BY HEIGHT ASC"
+
+        dbcursor = self._database.cursor()
+
+        dbcursor.execute(sql)
+
+        res = np.empty((0,2))
+        for s in dbcursor.fetchall():
+
+            res = np.append(res, [[s[0], s[1]]], axis=0)
+
+        return res
+
+    def getLastRAOBSep(self, station_id, to=None):
+        if to is None:
+            sql = "SELECT DATE, TIME FROM RAOBSREFR WHERE WMOID="+station_id+" ORDER BY `DATE` DESC, `TIME` DESC LIMIT 1;"
+
+            dbcursor = self._database.cursor()
+
+            dbcursor.execute(sql)
+
+            res = np.empty((0,2))
+            for s in dbcursor.fetchall():
+                
+
+                date = str(s[0]).split("-")
+                time = str(s[1]).split(":")
+
+                return Epoch(np.array([s[0].year, s[0].month, s[0].day, int(time[0]), int(time[1]), int(time[2])]))
+
+            return False
+        else:
+            sql = "SELECT DATE, TIME FROM RAOBSREFR WHERE WMOID="+station_id+" AND " + self._getTimeframeStatementMax(to) + " ORDER BY `DATE` DESC, `TIME` DESC LIMIT 1;"
+
+            dbcursor = self._database.cursor()
+
+            dbcursor.execute(sql)
+
+            res = np.empty((0,2))
+            for s in dbcursor.fetchall():
+                
+
+                date = str(s[0]).split("-")
+                time = str(s[1]).split(":")
+
+                return Epoch(np.array([s[0].year, s[0].month, s[0].day, int(time[0]), int(time[1]), int(time[2])]))
+
+            return False
+
 
 
 
@@ -345,13 +416,26 @@ class ReadDB(object):
         types = self.getStationTypes()
         if station_type == None:
             sql = "SELECT STATION, LAT, LON, HEIGHT, TYPE, LOCATION FROM STATION"
-        else:
-            sql = "SELECT STATION, LAT, LON, HEIGHT, TYPE, LOCATION FROM STATION WHERE TYPE="+str(list(types.keys())[list(types.values()).index(station_type)])
-        dbcursor = self._database.cursor()
-        dbcursor.execute(sql)
+            dbcursor = self._database.cursor()
+            dbcursor.execute(sql)
 
-        for sta in dbcursor.fetchall():
-            yield point.Point(id=sta[0], code=types[str(sta[4])], coord=np.array([sta[1], sta[2], sta[3]]), type=point.PLH, system=ellipsoid.WGS84(), other=sta[5])
+            for sta in dbcursor.fetchall():
+                yield point.Point(id=sta[0], code=types[str(sta[4])], coord=np.array([sta[1], sta[2], sta[3]]), type=point.PLH, system=ellipsoid.WGS84(), other=sta[5])
+        elif isinstance(station_type, str):
+            sql = "SELECT STATION, LAT, LON, HEIGHT, TYPE, LOCATION FROM STATION WHERE TYPE="+str(list(types.keys())[list(types.values()).index(station_type)])
+            dbcursor = self._database.cursor()
+            dbcursor.execute(sql)
+
+            for sta in dbcursor.fetchall():
+                yield point.Point(id=sta[0], code=types[str(sta[4])], coord=np.array([sta[1], sta[2], sta[3]]), type=point.PLH, system=ellipsoid.WGS84(), other=sta[5])
+        else:
+            for stt in station_type:
+                sql = "SELECT STATION, LAT, LON, HEIGHT, TYPE, LOCATION FROM STATION WHERE TYPE="+str(list(types.keys())[list(types.values()).index(stt)])
+                dbcursor = self._database.cursor()
+                dbcursor.execute(sql)
+
+                for sta in dbcursor.fetchall():
+                    yield point.Point(id=sta[0], code=types[str(sta[4])], coord=np.array([sta[1], sta[2], sta[3]]), type=point.PLH, system=ellipsoid.WGS84(), other=sta[5])
 
 
     def getStation(self, id4d):
