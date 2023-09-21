@@ -17,12 +17,14 @@ from matrix2vector import matrix2vector
 from tomography import tomography
 import station
 import traceback
+import gc
+import alloweddiffbyelev
 
 
 
 class GNSSCT(object):
 
-    def __init__(self, gridp, gridl, gridh, x0_3D_w, x0_3D_h, network, troposphere, mapping_function, ep, constellation=('G', 'R', 'E'), max_iter=3000, tolerance=2.7):
+    def __init__(self, gridp, gridl, gridh, x0_3D_w, x0_3D_h, network, troposphere, mapping_function, ep, constellation=('G', 'R', 'E'), max_iter=3000, tolerance=2.7, output_root="./"):
         self.gridp = gridp
         self.gridl = gridl
         self.gridh = gridh
@@ -51,6 +53,8 @@ class GNSSCT(object):
         self.Nw_3D = None
         self.Nh_3D = None
 
+        self.output_root = output_root
+
     def _calcGridCoords(self):
 
         p = np.empty((0,))
@@ -71,7 +75,7 @@ class GNSSCT(object):
         cursor = database.cursor()
         sql = 'INSERT INTO ' + table + ' (DATE, TIME, LAT, LON, ALT, NW) VALUES (%s, %s, %s, %s, %s, %s)'
         params = []
-        p,l,h = ct._calcGridCoords()
+        p,l,h = self._calcGridCoords()
 
 
         for i in range(0,np.shape(p)[0]):
@@ -87,13 +91,13 @@ class GNSSCT(object):
         cursor = database.cursor()
         sql = 'INSERT INTO ' + table + ' (DATE, TIME, LAT, LON, ALT, NH) VALUES (%s, %s, %s, %s, %s, %s)'
         params = []
-        p,l,h = ct._calcGridCoords()
+        p,l,h = self._calcGridCoords()
 
 
         for i in range(0,np.shape(p)[0]):
             for j in range(0,np.shape(l)[0]):
                 for k in range(0,np.shape(h)[0]):
-                    params.append((self.ep.date(), self.ep.time(), p[i], l[j], h[k], self.Nh_3D[i, j, k]))
+                    params.append((self.ep.date(), self.ep.time(), p[i], l[j], h[k], self.Nw_3D[i, j, k]))#NW !!!!!!!!!!!!!!!!!!!44
 
         cursor.executemany(sql, params)
 
@@ -111,8 +115,10 @@ class GNSSCT(object):
 
     def run(self):
 
-        train_A, train_b_w, train_b_h, stations, satellites = tomography(self.gridp, self.gridl, self.gridh, self.network, self.troposphere, self.mapping_function, self.ep, self.constellation, ())
-
+        train_A, train_b_w, train_b_h, stations, satellites, elevAz = tomography(self.gridp, self.gridl, self.gridh, self.network, self.troposphere, self.mapping_function, self.ep, self.constellation, ())
+        
+        stations = np.array(stations)
+        satellites = np.array(satellites)
         train_A_w = train_A
         train_A_h = train_A
         print(np.shape(train_A))
@@ -120,12 +126,34 @@ class GNSSCT(object):
         Nh_vec = matrix2vector(self.x0_3D_h)
         print(np.shape(train_A))
         #print(np.shape(train_b))
-        print(np.shape(Nw_vec))
-        print(np.shape(Nh_vec))
+
+        discarded_stations = np.empty((0,))
+        discarded_satellites = np.empty((0,))
+        accepted_stations = np.empty((0,))
+        accepted_satellites = np.empty((0,))
+        #print(satellites[0,1,2,3])
+
+        numOfRaysBefore = np.shape(train_b_w)[0]
+        first = True
+
+        i = 0
         while True:
+            print(i)
             Nw_vec, iter_num = mart.mart(train_A_w, train_b_w, self.max_iter, Nw_vec, self.tolerance/100)
 
+            if first:
+                pass
+            else:
+                first = False
+
+
             train_b_w_est = np.dot(train_A_w, Nw_vec)*10**-6
+
+            allowedDiffByElev = lambda e: 0.02/np.sin(e)
+
+            allowedDiff = allowedDiffByElev(elevAz[:,0])
+
+
 
 
             m, section, r, p, se = stats.linregress(train_b_w*10**-6, train_b_w_est)
@@ -137,19 +165,55 @@ class GNSSCT(object):
             sigma = float(np.std(diff))
 
             numOfRay = len(train_b_w_est)
+            
+            diffs = np.abs(train_b_w*10**-6 - train_b_w_est)
+            forPlot = np.append([elevAz[:,0].T], [diffs], axis=0).T
+
+            #print(forPlot)
+            thresholdElev = np.linspace(10,90,100)*np.pi/180#np.array([[10], [90]])
+            thresholdSWD = allowedDiffByElev(thresholdElev)
 
 
-            indeces = np.where(np.abs(diff) < 3*np.std(diff))[0]
+
+            threshold = np.append([thresholdElev*180/np.pi], [thresholdSWD], axis=0).T
+
+            
+            indeces = np.where(np.abs(allowedDiff) > diffs)[0]
+            discarded_indeces = np.where(np.abs(allowedDiff) <= diffs)[0]
+
             train_A_w = train_A_w[indeces,:]
             train_b_w = train_b_w[indeces]
 
+
             train_b_w_est = train_b_w_est[indeces]
 
+            
 
+            elevAz, discarded_elevAz = elevAz[indeces,:], elevAz[discarded_indeces,:]
+            diffs, discarded_diffs = diffs[indeces], diffs[discarded_indeces]
+
+            discarded_forPlot = np.append([discarded_elevAz[:,0].T], [discarded_diffs], axis=0).T
+
+
+            discarded_stations = np.append(discarded_stations, stations[discarded_indeces])
+            discarded_satellites = np.append(discarded_satellites, satellites[discarded_indeces])
+
+
+            stations = stations[indeces]
+            satellites = satellites[indeces]
+
+            i = i +1
             if numOfRay == len(train_b_w_est):
                 break
 
+
+        
+
+
+
         self.Nw_3D = vector2matrix(Nw_vec, (self.cellX, self.cellY, self.cellZ))
+
+        gc.collect()
 
         """while True:
             Nh_vec, iter_num = mart.mart(train_A_h, train_b_h, self.max_iter, Nh_vec, self.tolerance/100)
