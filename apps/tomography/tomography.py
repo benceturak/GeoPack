@@ -48,6 +48,8 @@ def tomography(gridp, gridl, gridh, network, tropo, mapping_function, ep, conste
     stations = []
     satellites = []
 
+    elevation_azimuth = np.empty((0,2))
+
     for sta in network.getStations():
 
         if sta.id in ignore_stations:
@@ -77,6 +79,7 @@ def tomography(gridp, gridl, gridh, network, tropo, mapping_function, ep, conste
                 continue
 
             for sat in network.getSatellites():
+                print(sta.id, ep,sat.prn )
 
 
                 if not sat.prn[0] in constellation:
@@ -225,17 +228,13 @@ def tomography(gridp, gridl, gridh, network, tropo, mapping_function, ep, conste
                         A_row = matrix2vector(A_row_3D)
 
 
-
-
                         A = np.append(A, [A_row], axis=0)
                         b_w = np.append(b_w, [swd*10**6])
                         b_h = np.append(b_h, [shd*10**6])
                         stations.append(sta.id)
                         satellites.append(sat.prn)
 
-
-
-
+                        elevation_azimuth = np.append(elevation_azimuth, [elevAz], axis=0)
 
                         row = sta.getXYZ().T
 
@@ -280,7 +279,7 @@ def tomography(gridp, gridl, gridh, network, tropo, mapping_function, ep, conste
 
 
 
-    return (A, b_w, b_h, stations, satellites)
+    return (A, b_w, b_h, stations, satellites, elevation_azimuth)
 
 
 
