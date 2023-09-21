@@ -79,6 +79,14 @@ class Epoch(object):
         DOY = DOY + self.dt[2]
 
         return DOY
+    
+    @property
+    def year(self):
+        """get  year
+            :return: year (int)
+        """
+
+        return self.dt[0]
 
 
 
@@ -251,6 +259,10 @@ class LeapSecs(object):
             self._read()
         except urllib.error.HTTPError:
             logging.error("Leapsec file connet be downloaded!")
+        except FileNotFoundError:
+            if os.path.exists(fileName):
+                os.remove(fileName)
+            wget.download(url, fileName)
         finally:
             self.fid.close()
 
