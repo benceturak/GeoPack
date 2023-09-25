@@ -74,7 +74,7 @@ class Epoch(object):
         for i in range(0,self.dt[1]-1):
             DOY = DOY + self.months[i]
 
-        if self.dt[0] % 4 == 0 and m == 1:#leap year, february
+        if self.dt[0] % 4 == 0 and self.months == 1:#leap year, february
             DOY = DOY + 1
         DOY = DOY + self.dt[2]
 
@@ -258,7 +258,7 @@ class LeapSecs(object):
 
             self._read()
         except urllib.error.HTTPError:
-            logging.error("Leapsec file connet be downloaded!")
+            logging.error("Leapsec file cannot be downloaded!")
         except FileNotFoundError:
             if os.path.exists(fileName):
                 os.remove(fileName)
