@@ -290,7 +290,6 @@ class ReadDB(object):
             for yv in y:
                 for zv in z:
                     i = np.all(np.array([Nw_rows[:,0] == xv, Nw_rows[:,1] == yv, Nw_rows[:,2] == zv]), axis=0)
-                    print(np.shape(Nw_rows))
                     Nw[np.where(x == xv)[0], np.where(y == yv)[0], np.where(z == zv)[0]] = Nw_rows[i,3]
 
         return (Nw, x, y, z)
