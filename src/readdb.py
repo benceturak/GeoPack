@@ -91,6 +91,15 @@ class ReadDB(object):
 
         return res
 
+    def getRAOBSNwLast(self, station_id, ep):
+        while True:
+            Nw = self.getRAOBSNwAtep(station_id)
+
+            if np.shape(Nw)[0] > 0:
+                return Nw
+            ep -=  Epoch(np.array([0,0,0,1,0,0]))
+            
+
     def getRAOBSTempAtep(self, station_id, ep):
 
         sql = "SELECT HEIGHT, TEMPERATURE FROM RAOBSREFR WHERE DATE='"+ep.date()+"' AND TIME='"+ep.time()+"' AND WMOID="+ str(station_id) +" ORDER BY HEIGHT ASC"
@@ -105,6 +114,8 @@ class ReadDB(object):
             res = np.append(res, [[s[0], s[1]]], axis=0)
 
         return res
+
+    
 
     def getRAOBSPressAtep(self, station_id, ep):
 
@@ -227,6 +238,24 @@ class ReadDB(object):
 
         return res
 
+    def getNh(self, lat=(), lon=(), alt=(), fr=None, to=None):
+
+
+        sql = 'SELECT DATE, TIME, LAT, LON, ALT, NH FROM 3DREFRACTIVITY_H WHERE ' + self._getTimeframeStatement(fr, to) + ' AND ' + self._getLocationLatStatement(lat) + ' AND ' + self._getLocationLonStatement(lon) + ' AND ' + self._getLocationAltStatement(alt)
+
+        dbcursor = self._database.cursor()
+
+        dbcursor.execute(sql)
+
+        res = np.empty((0,5))
+
+        for s in dbcursor.fetchall():
+            time = s[1].__str__().split(':')
+            ep = Epoch(np.array([s[0].year, s[0].month, s[0].day, int(time[0]), int(time[1]), int(time[2])]))
+            res = np.append(res, [[ep, s[2], s[3], s[4], s[5]]], axis=0)
+
+        return res
+
     def getNwAtEp(self, ep):
 
         sql = "SELECT DATE, TIME, LAT, LON, ALT, NW FROM 3DREFRACTIVITY_W WHERE DATE='"+ep.date()+"' AND TIME='"+ep.time()+"'"
@@ -261,11 +290,50 @@ class ReadDB(object):
             for yv in y:
                 for zv in z:
                     i = np.all(np.array([Nw_rows[:,0] == xv, Nw_rows[:,1] == yv, Nw_rows[:,2] == zv]), axis=0)
+                    print(np.shape(Nw_rows))
                     Nw[np.where(x == xv)[0], np.where(y == yv)[0], np.where(z == zv)[0]] = Nw_rows[i,3]
 
         return (Nw, x, y, z)
 
-    def getNw(self, lat=(), lon=(), alt=(), fr=None, to=None):
+    def getNhAtEp(self, ep):
+
+        sql = "SELECT DATE, TIME, LAT, LON, ALT, NH FROM 3DREFRACTIVITY_H WHERE DATE='"+ep.date()+"' AND TIME='"+ep.time()+"'"
+        dbcursor = self._database.cursor()
+
+        dbcursor.execute(sql)
+
+        res = np.empty((0,5))
+
+        x = np.empty((0,))
+        y = np.empty((0,))
+        z = np.empty((0,))
+
+        Nh_rows = np.empty((0,4))
+
+        for s in dbcursor.fetchall():
+            if not s[2] in x:
+                x = np.append(x, s[2])
+            if not s[3] in y:
+                y = np.append(y, s[3])
+            if not s[4] in z:
+                z = np.append(z, s[4])
+            Nh_rows = np.append(Nh_rows, [[s[2], s[3], s[4], s[5]]], axis=0)
+        np.sort(x)
+        np.sort(y)
+        np.sort(z)
+
+
+        Nh = np.empty((len(x),len(y),len(z)))
+
+        for xv in x:
+            for yv in y:
+                for zv in z:
+                    i = np.all(np.array([Nh_rows[:,0] == xv, Nh_rows[:,1] == yv, Nh_rows[:,2] == zv]), axis=0)
+                    Nh[np.where(x == xv)[0], np.where(y == yv)[0], np.where(z == zv)[0]] = Nh_rows[i,3]
+
+        return (Nh, x, y, z)
+
+    def getWVD(self, lat=(), lon=(), alt=(), fr=None, to=None):
 
 
         sql = 'SELECT DATE, TIME, LAT, LON, ALT, WVDENSITY FROM 3DWVDENSITY ' + self._getTimeframeStatement(fr, to) + ' AND ' + self._getLocationLatStatement(lat) + ' AND ' + self._getLocationLonStatement(lon) + ' AND ' + self._getLocationAltStatement(alt)
@@ -282,6 +350,39 @@ class ReadDB(object):
             res = np.append(res, [[ep, s[2], s[3], s[4], s[5]]], axis=0)
 
         return res
+
+    def getWeeklyCoords(self, week, datumid):
+        sql = 'SELECT STATION, GPSWEEK, X, Y, Z, DATUMID FROM WEEKLYCRD WHERE GPSWEEK={:d} AND DATUMID={:d};'.format(week, datumid)
+
+        dbcursor = self._database.cursor()
+
+        dbcursor.execute(sql)
+
+        res = np.empty((0,5))
+        IDs = []
+
+        for s in dbcursor.fetchall():
+            IDs.append(s[0])
+            res = np.append(res, [[s[1], s[2], s[3], s[4], s[5]]], axis=0)
+
+        return (IDs, res)
+    
+    def getDailyCoords(self, year, doy, datumid):
+        sql = 'SELECT STATION, YEAR, DOY, X, Y, Z, DATUMID FROM DAILYCRD WHERE YEAR={:d} AND DOY={:d} AND DATUMID={:d};'.format(year, doy,  datumid)
+
+        dbcursor = self._database.cursor()
+
+        dbcursor.execute(sql)
+
+        res = np.empty((0,6))
+        IDs = []
+
+        for s in dbcursor.fetchall():
+            IDs.append(s[0])
+            res = np.append(res, [[s[1], s[2], s[3], s[4], s[5], s[6]]], axis=0)
+
+        return (IDs, res)
+        
 
     def getWVDAtEp(self, ep):
 
@@ -335,6 +436,11 @@ class ReadDB(object):
 
     def getNwProfile(self, lat, lon, ep, kind='linear'):
         Nw, x, y, z = self.getNwAtEp(ep)
+
+        return self.getProfile(Nw, x, y, z, lat, lon, kind)
+
+    def getNhProfile(self, lat, lon, ep, kind='linear'):
+        Nw, x, y, z = self.getNhAtEp(ep)
 
         return self.getProfile(Nw, x, y, z, lat, lon, kind)
 
