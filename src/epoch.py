@@ -22,7 +22,7 @@ class Epoch(object):
 
     months = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
 
-    def __init__(self, dt, system=GPS, downloadLeapSec=False):
+    def __init__(self, dt=np.array([1,0,0,0,0,0]), system=GPS, downloadLeapSec=False):
         """Epoch constructor
 
         """
@@ -42,7 +42,21 @@ class Epoch(object):
         """
         return self.dt
 
+    def GPSweekTOW(self, week, tow):
+        """set time by GPS week and tow
+            :param week: GPSweek (int)
+            :param tow: time of week (int)
+        """
 
+
+        dateMJD = week*7+Epoch(np.array([1980,1,6,0,0,0])).MJD+int(tow/86400)
+
+        date = datetime.date.fromordinal(int(dateMJD)+678576)
+        hour = int((tow%86400)/3600)
+        min = int((tow%86400)/60 - hour*60)
+        sec = int((tow%86400) - hour*3600 - min*60)
+
+        self.dt = np.array([date.year, date.month, date.day, hour, min, sec])
     @property
     def GPSweek(self):
         """get GPS week
@@ -303,6 +317,10 @@ if __name__ == "__main__":
 
     print(a.dt)
     print(a.UTC)
+
+    d = Epoch()
+    d.GPSweekTOW(2290, 586760.0)
+    print(d)
     #print(a.SU)
 
     #print(a + b)
