@@ -178,7 +178,7 @@ class Epoch(object):
             m = m -1
         daysOfMonth = self.months[m-1]
 
-        if self.dt[0] % 4 == 0 and m == 1:#leap year, february
+        if self.dt[0] % 4 == 0 and m == 2:#leap year, february
             daysOfMonth += 1
 
 
