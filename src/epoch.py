@@ -54,8 +54,8 @@ class Epoch(object):
         date = datetime.date.fromordinal(int(dateMJD)+678576)
         hour = int((tow%86400)/3600)
         min = int((tow%86400)/60 - hour*60)
-        sec = int((tow%86400) - hour*3600 - min*60)
-
+        sec = float((tow%86400) - hour*3600 - min*60)
+        self._normalize()
         self.dt = np.array([date.year, date.month, date.day, hour, min, sec])
     @property
     def GPSweek(self):
@@ -88,7 +88,7 @@ class Epoch(object):
         for i in range(0,self.dt[1]-1):
             DOY = DOY + self.months[i]
 
-        if self.dt[0] % 4 == 0 and self.months == 1:#leap year, february
+        if self.dt[0] % 4 == 0 and self.month > 2:#leap year, february
             DOY = DOY + 1
         DOY = DOY + self.dt[2]
 
@@ -99,9 +99,37 @@ class Epoch(object):
         """get  year
             :return: year (int)
         """
-
         return self.dt[0]
-
+    @property
+    def month(self):
+        """get  month
+            :return: month (int)
+        """
+        return self.dt[1]
+    @property
+    def day(self):
+        """get  day
+            :return: day (int)
+        """
+        return self.dt[2]
+    @property
+    def hour(self):
+        """get  hour
+            :return: hour (int)
+        """
+        return self.dt[3]
+    @property
+    def min(self):
+        """get  min
+            :return: min (int)
+        """
+        return self.dt[4]
+    @property
+    def sec(self):
+        """get  sec
+            :return: sec (int)
+        """
+        return self.dt[5]
 
 
 
