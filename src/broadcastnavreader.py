@@ -14,6 +14,7 @@ class BroadcastNavReader(gpsnavreader.GPSNavReader, glonassnavreader.GLONASSNavR
 
             :param fileName: name of navigation file (string)
     """
+    GAGP = np.array([0,0,0,0])
 
     def getSatellite(self, prn):
 
@@ -75,6 +76,20 @@ class BroadcastNavReader(gpsnavreader.GPSNavReader, glonassnavreader.GLONASSNavR
 
             if type == 'ENDOFHEADER':
                 break
+
+    def TIMESYSTEMCORR(self, line):
+        sysdiff = line[0:4]
+        a0 = float(line[5:22])
+        a1 = float(line[22:38])
+        tow = int(line[39:45])
+        week = int(line[46:50])
+
+        #TODO: satId
+        #t_ref = Epoch()
+        #t_ref.GPSweekTOW(week, tow)
+        if sysdiff == "GAGP":
+            self.GAGP = np.array([a0, a1, tow, week])
+
 
 if __name__ == "__main__":
 

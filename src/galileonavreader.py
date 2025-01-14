@@ -22,6 +22,8 @@ class GalileoNavReader(NavReader):
         """
 
         sat = Satellite(prn)
+        
+        sat.setGAGP(self.GAGP)
         for i in self.navigationDatas[prn]:
             nav = {}
             nav['epoch'] = i[0]

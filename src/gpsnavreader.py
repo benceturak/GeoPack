@@ -14,6 +14,13 @@ class GPSNavReader(NavReader):
             :param fileName: name of navigation file (string)
     """
 
+    def getSatellites(self, prnList=(), gnss=()):
+        
+        for prn in self.navigationDatas.keys():
+
+            if (prnList == () and gnss == ()) or (prn in prnList or prn[0] in gnss):
+                yield self.getSatellite(prn)
+
 
     def getSatellite(self, prn):
         """Get satellite orbit navigation messages

@@ -1,7 +1,6 @@
 import math
 import numpy as np
 
-
 class Rotation(object):
 
     def __init__(self, x=0, y=0, z=0, order='xyz'):
@@ -9,7 +8,7 @@ class Rotation(object):
         Rx = np.array([[1, 0, 0], [0, math.cos(x), -math.sin(x)], [0, math.sin(x), math.cos(x)]])
         Ry = np.array([[math.cos(y), 0, math.sin(y)], [0, 1, 0], [-math.sin(y), 0, math.cos(y)]])
         Rz = np.array([[math.cos(z), -math.sin(z), 0], [math.sin(z), math.cos(z), 0], [0, 0, 1]])
-
+        self.matrix = 0
         if order=='xyz':
             self.matrix = np.dot(np.dot(Rx,Ry), Rz)
         elif order == 'xzy':
@@ -26,13 +25,18 @@ class Rotation(object):
     def setRot(self, R):
         self.matrix = R
 
+    #def matrix(self):
+    #    return self.matrix
+    
+
     def __mul__(self, other):
         from point import Point
+        from station import Station
         if isinstance(other, Rotation):
             R = Rotation()
             R.setRot(np.dot(self.matrix, other.matrix))
             return R
-        elif isinstance(other, Point) :
+        elif isinstance(other, (Point, Station)) :
             return Point(id=other.id, coord=np.dot(self.matrix, other.xyz))
         elif isinstance(other,np.ndarray):
             ps = np.empty((0,))

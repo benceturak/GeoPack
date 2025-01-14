@@ -1,5 +1,6 @@
 import numpy as np
 import ellipsoid
+from rotation import Rotation
 XYZ = 1
 PLH = 2
 class Point(object):
@@ -115,6 +116,10 @@ class Point(object):
 
 
 
+    def __mul__(self, other):
+
+        if isinstance(other, Rotation):
+            return Point(coord=np.matmul(self.getXYZ().T, other.matrix).T, type=XYZ)
 
     def __add__(self, other):
         if not isinstance(other, Point):

@@ -7,8 +7,11 @@ import os
 import logging
 import copy
 
-GPS = 1
-UTC = 2
+GPS = 1 #GPST GPS Time
+UTC = 2 #Coordinated Univerzal Time
+GST = 3 #Galileo System Time
+BDT = 4 #BeiDou Time System
+
 
 class TimeError(Exception):pass
 
@@ -34,6 +37,7 @@ class Epoch(object):
             ls = LeapSecs(download=downloadLeapSec).getLeapSecsAt(self)
             #print(self + ls)
             self.dt = (self + ls).dt
+
 
     @property
     def getDateTime(self, system=GPS):
@@ -67,7 +71,7 @@ class Epoch(object):
 
     @property
     def TOW(self):
-        """get seconds on the GPS week
+        """get seconds of the GPS week
             :return: TOW(float)
         """
         return self.DOW*86400 + self.dt[3]*3600 + self.dt[4]*60 + self.dt[5]
