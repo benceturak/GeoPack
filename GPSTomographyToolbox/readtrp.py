@@ -11,14 +11,16 @@ DB = 2
 
 
 class ReadTRP(object):
-    """
-        ReadTRP class to read Bernese TRP (troposphere) format file
+    """!ReadTRP class to read Bernese TRP (troposphere) format file
 
-            :param fileName: name of TRP file (string)
     """
 
     def __init__(self, fileName=None, database=None, table=None, type=TXT):
-        """ReadTRP constructor
+        """!ReadTRP class initializer
+        @param fileName (str): location of Brenese toposphere file (TRP), default: None
+        @param database (mysql.connector): connected mysql database, default: None
+        @param table (str): name of table in case of database, default: None
+        @param type (int): in case of text file: 1, in casa of database: 2, dafault: TXT 
 
         """
         if type == TXT:
@@ -46,7 +48,7 @@ class ReadTRP(object):
 
 
     def _readBody(self):
-        """read TRP body
+        """!read TRP body
 
         """
         line = self.fid.readline()
@@ -92,7 +94,7 @@ class ReadTRP(object):
             line = self.fid.readline()
 
     def _readHeader(self):
-        """read TRP header
+        """!read TRP header
 
         """
 
@@ -116,6 +118,12 @@ class ReadTRP(object):
                 break
 
     def get_MOD_U(self, digit4Id, ep):
+        """!get MOD_U (ZHD) value at the given station and epoch
+        @param digit4Id (str): station ID
+        @param ep (epoch): epoch
+        @return (float): MOD_U (ZHD) value at the given stgation and epoch
+        
+        """
         if self.type == TXT:
             f = interpolate.interp1d(self.troposphere[digit4Id][:,0], self.troposphere[digit4Id][:,1])
             return f(ep.MJD)
@@ -145,6 +153,13 @@ class ReadTRP(object):
 
 
     def get_CORR_U(self, digit4Id, ep):
+        """!get CORR_U (ZWD) value at the given station and epoch
+        @param digit4Id (str): station ID
+        @param ep (epoch): epoch
+        @return (float): MOD_U (ZHD) value at the given stgation and epoch
+        
+        """
+        
         if self.type == TXT:
             f = interpolate.interp1d(self.troposphere[digit4Id][:,0], self.troposphere[digit4Id][:,2])
             return f(ep.MJD)
@@ -174,6 +189,11 @@ class ReadTRP(object):
                 return f(ep.MJD)
 
     def get_SIGMA_U(self, digit4Id, ep):
+        """!get SIGMA_U (standard deviation CORR_U) value at the given station and epoch
+        @param digit4Id (str): station ID
+        @param ep (epoch): epoch
+        @return (float): SIGMA_U (standard deviation CORR_U) value at the given stgation and epoch
+        """
         if self.type == TXT:
             f = interpolate.interp1d(self.troposphere[digit4Id][:,0], self.troposphere[digit4Id][:,3])
             return f(ep.MJD)
@@ -203,6 +223,11 @@ class ReadTRP(object):
                 return f(ep.MJD)
 
     def get_TOTAL_U(self, digit4Id, ep):
+        """!get TOTAL_U (ZTD) value at the given station and epoch
+        @param digit4Id (str): station ID
+        @param ep (epoch): epoch
+        @return (float): TOTAL_U (ZTD) value at the given stgation and epoch
+        """
         if self.type == TXT:
             f = interpolate.interp1d(self.troposphere[digit4Id][:,0], self.troposphere[digit4Id][:,4])
             return f(ep.MJD)
@@ -232,6 +257,11 @@ class ReadTRP(object):
                 return f(ep.MJD)
 
     def get_CORR_N(self, digit4Id, ep):
+        """!get CORR_N (tropospheric gradient north) value at the given station and epoch
+        @param digit4Id (str): station ID
+        @param ep (epoch): epoch
+        @return (float): CORR_N (tropospheric gradient north) value at the given stgation and epoch
+        """
         if self.type == TXT:
             f = interpolate.interp1d(self.troposphere[digit4Id][:,0], self.troposphere[digit4Id][:,5])
             return f(ep.MJD)
@@ -261,6 +291,11 @@ class ReadTRP(object):
                 return f(ep.MJD)
 
     def get_SIGMA_N(self, digit4Id, ep):
+        """!get SIGMA_N (tropospheric gradient STD north) value at the given station and epoch
+        @param digit4Id (str): station ID
+        @param ep (epoch): epoch
+        @return (float): SIGMA_N (tropospheric gradient STD north) value at the given stgation and epoch
+        """
         if self.type == TXT:
             f = interpolate.interp1d(self.troposphere[digit4Id][:,0], self.troposphere[digit4Id][:,6])
             return f(ep.MJD)
@@ -290,6 +325,11 @@ class ReadTRP(object):
                 return f(ep.MJD)
 
     def get_CORR_E(self, digit4Id, ep):
+        """!get CORR_E (tropospheric gradient east) value at the given station and epoch
+        @param digit4Id (str): station ID
+        @param ep (epoch): epoch
+        @return (float): CORR_E (tropospheric gradient east) value at the given stgation and epoch
+        """
         if self.type == TXT:
             f = interpolate.interp1d(self.troposphere[digit4Id][:,0], self.troposphere[digit4Id][:,7])
             return f(ep.MJD)
@@ -319,6 +359,11 @@ class ReadTRP(object):
                 return f(ep.MJD)
 
     def get_SIGMA_E(self, digit4Id, ep):
+        """!get SIGMA_E (tropospheric gradient STD east) value at the given station and epoch
+        @param digit4Id (str): station ID
+        @param ep (epoch): epoch
+        @return (float): SIGMA_E (tropospheric gradient STD east) value at the given stgation and epoch
+        """
         if self.type == TXT:
             f = interpolate.interp1d(self.troposphere[digit4Id][:,0], self.troposphere[digit4Id][:,8])
             return f(ep.MJD)

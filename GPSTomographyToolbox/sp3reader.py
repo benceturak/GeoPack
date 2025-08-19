@@ -4,10 +4,12 @@ import logging
 from satellite import Satellite
 
 class SP3Reader(object):
-
+    """!SP3Reader class to read and parse SP3 format satellite orbit file
+    
+    """
     def __init__(self, fileName):
-        """SP3Reader condtructor
-
+        """SP3Reader initializer
+        @param fileName (str): location of SP3 orbit file
         """
 
         self.fileName = fileName#filename
@@ -25,6 +27,9 @@ class SP3Reader(object):
         finally:
             self.fid.close()
     def _readBody(self):
+        """!read SP3 body
+
+        """
         #print(self.positions)
         line = self.fid.readline()
         while line.strip() != 'EOF':
@@ -39,6 +44,9 @@ class SP3Reader(object):
 
 
     def _readHeader(self):
+        """!read SP3 header
+
+        """
 
         for i in range(1, 23):
             line = self.fid.readline()
@@ -51,12 +59,20 @@ class SP3Reader(object):
                 pass
 
     def getSatellite(self, prn):
+        """!get satellite by PRN number
+        @param prn (str): PRN number of the satellite
+        @return (Satellite): Satellite object with the orbit of the given PRN number
+        """
         sat = Satellite(prn)
         sat.addSP3coords(self.positions[prn])
 
         return sat
 
     def getSatellites(self):
+        """!get list of satellites with the orbit (generator method)
+        @return (Satellite): Satellite object with the orbit of the given PRN number
+        """
+
         for prn in self.positions:
             yield self.getSatellite(prn)
 

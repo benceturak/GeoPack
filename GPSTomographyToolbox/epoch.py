@@ -13,18 +13,15 @@ UTC = 2
 class TimeError(Exception):pass
 
 class Epoch(object):
-    """
-        Epoch class to contain datetime and perform operations
-
-            :param dt: datetime in vector [year, month, day, hour, minute, second](NumPy array)
-            :param system: time system GPS, UTC (int), default GPS
+    """!Epoch class to contain datetime and perform operations
     """
 
     months = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
 
     def __init__(self, dt=np.array([1,0,0,0,0,0]), system=GPS, downloadLeapSec=False):
-        """Epoch constructor
-
+        """!Epoch initialiazer
+        @param dt (np.array): datetime in vector [year, month, day, hour, minute, second]
+        @param system: time system GPS, UTC (int), default GPS
         """
 
         if system == GPS:
@@ -37,15 +34,15 @@ class Epoch(object):
 
     @property
     def getDateTime(self, system=GPS):
-        """get DateTime time
-
+        """!get DateTime time getter
+        @return datetime (np.array)
         """
         return self.dt
 
     def GPSweekTOW(self, week, tow):
-        """set time by GPS week and tow
-            :param week: GPSweek (int)
-            :param tow: time of week (int)
+        """!set time by GPS week and tow
+        @param week (int): GPSweek
+        @param tow (float): time of week
         """
 
 
@@ -59,30 +56,30 @@ class Epoch(object):
         self.dt = np.array([date.year, date.month, date.day, hour, min, sec])
     @property
     def GPSweek(self):
-        """get GPS week
-            :return: DOW (int)
+        """!get GPS week getter
+        @return gps_week (int)
         """
         return int((math.floor(math.floor(self.MJD) - Epoch(np.array([1980,1,6,0,0,0])).MJD))/7)
 
 
     @property
     def TOW(self):
-        """get seconds on the GPS week
-            :return: TOW(float)
+        """!get seconds on the GPS week getter
+        @return TOW (float)
         """
         return self.DOW*86400 + self.dt[3]*3600 + self.dt[4]*60 + self.dt[5]
 
     @property
     def DOW(self):
-        """get day of GPS week
-            :return: DOW (int)
+        """!get day of GPS week getter
+        @return DOW (int)
         """
         return int((math.floor(math.floor(self.MJD) - Epoch(np.array([1980,1,6,0,0,0])).MJD))%7)
 
     @property
     def DOY(self):
-        """get day of year
-            :return: DOY (int)
+        """!get day of year getter
+        @return DOY (int)
         """
         DOY = 0
         for i in range(0,self.dt[1]-1):
@@ -96,34 +93,46 @@ class Epoch(object):
     
     @property
     def year(self):
-        """get  year
-            :return: year (int)
+        """!get year getter
+        @return year (int)
         """
 
         return self.dt[0]
 
 
-
-
     @property
     def UTC(self):
+        """!get datetime in UTC time system, getter available leapseconds are required in the given epoch
+        @return utc (np.array)
+        
+        """
         ls = LeapSecs().getLeapSecsAt(self)
         return (self - ls).dt
     @property
     def GPS(self):
+        """!get datetime in GPS time system, getter, available leapseconds are required in the given epoch
+        @return utc (np.array)
+        
+        """
         return self.dt
 
     @property
     def MJD(self):
-        """get Modified Julian Date
-            :return: MJD (float)
+        """!get Modified Julian Date, getter
+        @return MJD (float)
         """
         #leapsec???????
         return datetime.date.toordinal(datetime.date(int(self.dt[0]),int(self.dt[1]),int(self.dt[2]))) + (self.dt[3] + (self.dt[4] + self.dt[5]/60)/60)/(24) - 678576
     def date(self):
+        """!get date in formatted string
+        @return date (str)
+        """
         return '{0:d}-{1:02d}-{2:02d}'.format(int(self.dt[0]), int(self.dt[1]), int(self.dt[2]))
 
     def time(self):
+        """!get time in formatted string
+        @return time (str)
+        """
         return '{0:02d}:{1:02d}:{2:02d}'.format(int(self.dt[3]), int(self.dt[4]), self.dt[5])
 
     def floor(self, n):
@@ -140,7 +149,7 @@ class Epoch(object):
 
 
     def _normalize(self):
-        """normalize date when a value out of range
+        """!normalize date when a value is out of range
 
         """
 
@@ -248,15 +257,14 @@ class Epoch(object):
 
         return '{0:d}-{1:02d}-{2:02d} {3:02d}:{4:02d}:{5:05.2f}'.format(int(self.dt[0]), int(self.dt[1]), int(self.dt[2]), int(self.dt[3]), int(self.dt[4]), self.dt[5])
 class LeapSecs(object):
-    """
-        LeapSecs class to handle leap seconds
-            :param fileName: (string), default Leap_second.dat
-            :param url: url of leapsec file (string), default https://hpiers.obspm.fr/iers/bul/bulc/Leap_Second.dat (IERS bulletin C)
-            :param download: download the leapsec file? (boolean), default False
+    """!LeapSecs class to handle leap seconds.
     """
 
     def __init__(self, fileName = 'Leap_Second.dat', url='https://hpiers.obspm.fr/iers/bul/bulc/Leap_Second.dat', download=False):
-        """LeapSecs construcor
+        """!LeapSecs initializer.
+        @param fileName (str): default Leap_second.dat
+        @param url (str): url of leapsec file, default https://hpiers.obspm.fr/iers/bul/bulc/Leap_Second.dat (IERS bulletin C)
+        @param download (boolean): download the leapsec file?, default False
 
         """
         self.fileName = fileName
@@ -281,8 +289,7 @@ class LeapSecs(object):
             self.fid.close()
 
     def _read(self):
-        """read leapsec file
-
+        """!Read leapsec file.
         """
 
         #read leeapsec file row by row

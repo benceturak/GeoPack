@@ -1,7 +1,16 @@
 import numpy as np
-
+## @brief Wet refractivity reconstruction using Multiplicative Algebraic Reconstuction Technique
+# @file mart.py
 def mart(A, b, maxIter, x0, tol):
-
+    """!Wet refractivity reconstruction using Multiplicative Algebraic Reconstuction Technique
+    @param A (np.array): design matrix
+    @param b (np.array): vector of observations
+    @param maxIter (int): max iteration of MART algorithm
+    @param x0 (np.array): inital wet refractivity model
+    @param tol (float): tolerance for MART algorithm
+    @return x (np.array): reconstructed wet rafractivity
+    @return iter (int): number of iteration during the procession
+    """
     x = x0
     for k in range(0, maxIter):
         x1 = x

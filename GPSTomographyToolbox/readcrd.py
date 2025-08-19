@@ -6,14 +6,12 @@ from network import Network
 from ellipsoid import WGS84
 
 class ReadCRD(object):
-    """
-        ReadCRD class to read Bernese CRD format file
-
-            :param fileName: name of CRD file (string)
+    """!ReadCRD class to read Bernese CRD format file The content of the Bernese CRD file will be sored and can be used inv the newtork parameter of the class in a Network object.
     """
 
     def __init__(self, fileName):
-        """ReadCRD constructor
+        """!ReadCRD constructor
+        @param fileName (str): name of CRD file
 
         """
 
@@ -35,7 +33,7 @@ class ReadCRD(object):
             self.fid.close()
 
     def _readBody(self):
-        """read CRD body
+        """!read CRD body
 
         """
         #read next row
@@ -70,7 +68,7 @@ class ReadCRD(object):
             line = self.fid.readline()
 
     def _readHeader(self):
-        """read CRD header
+        """!read CRD header
 
         """
 

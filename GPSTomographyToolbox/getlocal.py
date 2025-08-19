@@ -5,7 +5,14 @@ import numpy as np
 import point
 
 class GetLocal(object):
+    """!Transformation class from ellipsoidal coordinate system to a pre-defined cylindrical projection. 
+    """
     def __init__(self, min, max):
+        """!GetLocal initializer to define the corners of the area to fit the best cylinder including heights
+        @param min (np.array (3,): corner of the fitted CRS
+        @param max (np.array (3,): opposite corner of the fitted CRS
+
+        """
         self.min = min
         self.max = max
         ell = WGS84()
@@ -15,12 +22,20 @@ class GetLocal(object):
         self.ec = ell.ec
 
     def x(self, lat):
+        """!x coordinate in local coordinate system
+        @param lat (float): latitude (radians)
+        @return x (float): meters
+        """
         M = lambda phi: self.a*(1 - self.e**2)/((1 - self.e**2*np.sin(phi)**2)**(3/2))
 
         x = lambda deltaPhi: M(self.min[0] + deltaPhi/2)*deltaPhi + self.a*self.e**2*(1 - self.e**2)*np.cos(2*(self.min[0] + deltaPhi/2))*deltaPhi**3*(1/8)
 
         return x(lat - self.min[0])
     def y(self, lon):
+        """!y coordinate in local coordinate system
+        @param lon (float): longitude (radians)
+        @return y (float): meters
+        """
         N = lambda phi: self.a*(1 - self.e**2*np.sin(phi)**2)**(-1/2)
 
         mid_lat = (self.min[0] + self.max[0])/2
@@ -28,9 +43,17 @@ class GetLocal(object):
 
         return y(lon - self.min[1])
     def z(self, h):
+        """!z coordinate in local coordinate system
+        @param h (float): height (meters)
+        @return z (float): meters
+        """
         return h - self.min[2]
 
     def getLocalCoords(self, p):
+        """!Transform ellipsoidal coordinates to local cylindrical coordinates
+        @param p (Point, Station): Point/Station object with available geographical coordinates
+        @return trnsformed_p (Point, Station): Point/Station object in  cylindrical CRS. 
+        """
         plh = p.getPLH()
         x = self.x(plh[0,0])
         y = self.y(plh[1,0])

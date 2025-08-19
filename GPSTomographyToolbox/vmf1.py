@@ -1,12 +1,34 @@
+#!/usr/bin/env python3
+"""
+@file vmf1.py
+
+@brief dflkgjnsgjksndfgksjldf
+
+@section description_vmf1 Description
+ksdjf vasdlfasd uifash fliusdhfuia shdflajhsdf jahsdljfhasjdh fhaslj hflsh aéiojgaosjdfjasdbfajsifj 
+
+"""
+
 import numpy as np
 
 def NeillFormula(e, a, b, c):
+    """!Neill Formula 
+        @param e (float): elevation angle in radian
+        @param a (float): "a" parameter of the mapping function
+        @param b (float): "b" parameter of the mapping function
+        @param c (float): "c" parameter of the mapping function
+        @return (float): value of the mapping function with the given parameters
+        """
     return (1 + (a/(1 + b/(1 + c))))/(np.sin(e) + (a/(np.sin(e) + b/(np.sin(e) + c))))
 
 
 
 
 class VMF1(object):
+    """!Vienna Mapping Function 1 class to calculate slant hydrostatic and wet delay at a GNSS station to any direction in a topocentric coordinate system.
+    @section dsfsdfsd Section
+    hydrostatic "a" parameter of VMF1
+    """
     a_ht = 2.53*10**-5
     b_ht = 5.49*10**-3
     c_ht = 1.14*10**-3
@@ -19,6 +41,11 @@ class VMF1(object):
     PSZI = np.array([np.pi, 0])
 
     def __init__(self, vmf1grid):
+        """!VMF1 class initializer
+        @param vmf1grid (int): parsed VMF1 grid
+
+        @return num
+        """
         super(VMF1, self).__init__()
 
         self.vmf1grid = vmf1grid
@@ -30,6 +57,13 @@ class VMF1(object):
 
 
     def c_h(self, st, ep):
+        """!Calculate the hydrostatic "c" parameter at the given station and epoch
+        
+        @param st (Station): station
+        @param ep (Epoch): epoch
+        @return (float): hydrostatic "c" paramater of VMF1
+        
+        """
         doy = ep.MJD - 44239 + 1 - 28
 
 
@@ -108,10 +142,30 @@ class VMF1(object):
 
         return der
     def slantDelay_h(self, zd, st, alpha, e, ep, grad_n=0, grad_e=0):
+        """!Calculate the slant hydrostatic delay concerning the troposheric gradients
+        @param zd (float): zenith hydrostatic delay
+        @param st (Station): station
+        @param alpha (float): azimuth angle in radians
+        @param e (float): elevation angle in radians
+        @param ep (Epoch): epoch
+        @param grad_n (float): tropospheric gradient to the direction North
+        @param grad_e (float): tropospheric gradient to the direction East
+        @retrun (float): slant hydrostatic delay
+        """
 
         return self.fun_h(st, e, ep)*zd + grad_n*self.fun_h_der(st, e, ep)*np.cos(alpha) + grad_e*self.fun_h_der(st, e, ep)*np.sin(alpha)
 
     def slantDelay_w(self, zd, st, alpha, e, ep, grad_n=0, grad_e=0):
+        """!Calculate the slant wet delay concerning the troposheric gradients
+        @param zd (float): zenith wet delay
+        @param st (Station): station
+        @param alpha (float): azimuth angle in radians
+        @param e (float): elevation angle in radians
+        @param ep (Epoch): epoch
+        @param grad_n (float): tropospheric gradient to the direction North
+        @param grad_e (float): tropospheric gradient to the direction East
+        @retrun (float): slant wet delay
+        """
 
         return self.fun_w(st, e, ep)*zd + zd*grad_n*self.fun_w_der(st, e, ep)*np.cos(alpha) + zd*grad_e*self.fun_w_der(st, e, ep)*np.sin(alpha)
 

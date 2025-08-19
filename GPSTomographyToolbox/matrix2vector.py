@@ -1,7 +1,7 @@
 import numpy as np
 
 def matrix2vector(matrix):
-    for i in range(0,len(matrix)):
+    for i in range(0,np.shape(matrix)[2]):
         try:
             vector = np.append(vector, matrix[:,:,i].T.flatten())
         except:

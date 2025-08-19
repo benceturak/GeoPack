@@ -1,32 +1,32 @@
 import numpy as np
 
 class Network(object):
-    """Network class to collect stations and satellites.
+    """!Network class to collect stations and satellites.
 
     """
     def __init__(self):
-        """Network constructor
+        """!Network initializer
 
         """
         self.stations = []
         self.satellites = []
 
     def getStations(self):
-        """get stations method
-            :return: all of stations (Point object), generator
+        """!get stations method generator function
+        @return network_stations (Station/Point): list of stations, generator
         """
         for s in self.stations:
             yield s
     def getSatellites(self):
-        """get satellites method
-            :return: all of satellites (Satellite object), generator
+        """!get satellites method generator function
+        @return network_satellites (Satellite): list of satellites, generator
         """
         for s in self.satellites:
             yield s
     def getStationBy4digitId(self, id):
-        """get an exect station, select by the 4 digit IDű
-            :param id: 4 digit ID (Str)
-            :return: station (Point)
+        """!get an exact station, select by the 4 digit ID
+        @param id (str): 4 digit ID
+        @return station (Station, Point): station
 
         """
         for s in self.stations:
@@ -34,21 +34,21 @@ class Network(object):
                 return s
 
     def addStation(self, st):
-        """add station to the network
-            :param st: station (Point)
+        """!add station to the network
+        @param st (Point,Station): station
 
         """
         self.stations.append(st)
     def addSatellite(self, sat):
-        """add satellite to the network
-            :param sat: satellite (Satellite)
+        """!add satellite to the network
+        @param sat (Satellite): satellite
 
         """
         self.satellites.append(sat)
 
     def getStationsMatrix(self):
-        """get stations' ids and coordinates in matrix
-            :return: ids and coordinates of stations (tuple {ids: (Str), coords: numpy array (n,3)})
+        """!get stations' ids and coordinates in matrix
+        @return (tuple {ids: (Str), coords: numpy array (n,3)}): ids and coordinates of stations 
         """
         mat = np.empty((0,3))
         ids = np.empty((0,1))

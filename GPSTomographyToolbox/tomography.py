@@ -7,7 +7,27 @@ from matrix2vector import matrix2vector
 from vector2matrix import vector2matrix
 import traceback
 
+
+## @brief Calculate each rays' length through the tomographic grid and Slant Wet Delay using VIenna Mapping Function 1 for setting up the design matrix a measurements vetor of the equation system
+# @file tomography.py
 def tomography(proj, gridp, gridl, gridh, network, tropo, mapping_function, ep, constellation=('G','R','E'), ignore_stations=[]):
+    """!Calculate each rays' length through the tomographic grid and Slant Wet Delay using VIenna Mapping Function 1 for setting up the design matrix a measurements vetor of the equation system
+    @param proj (GetLocal): projections class to get local coordinates from ECEF coordinates
+    @param gridp (np.array): tomographic grid (longitude) in radians
+    @param gridl (np.array): tomographic grid (latitude) in radians
+    @param gridh (np.array): tomographic grid (height) in meters
+    @param network (Network): network object that contains all the reference stations and satellite orbits in the reference epoch
+    @param tropo (ReadTRP): parsed troposheric delays from Benese TRP file in the reference epoch
+    @param mapping_function (VMF1): Vienna Mapping Funtion 1 with the recent VMF1 parameters 
+    @param ep (Epoch): refernce epoch
+    @param constellations (tuple): list of applied GNSS constellations (G => GPS, R => GLONASS, E => Galileo), diffault: ('G', 'R', 'E') 
+    @param ignore_stations (list of station IDs): list of station IDs to be ignored, default: [] 
+    @return A (numpy array (n,m)): design matrix (length of rays in each cell)
+    @return b (numpy array (n))): measuremnts vector (10^6*SWD values from each station to each satellite)
+    @return stations (list (n)): list of stations to the correponding rays
+    @retrun satellites (list (n)): list of satellites to the correponding rays
+    @return elevation_azimuth (numpy array (n,2)): elevation and azimuth angles to the correponding rays
+    """
 
 
 
@@ -35,7 +55,6 @@ def tomography(proj, gridp, gridl, gridh, network, tropo, mapping_function, ep, 
 
 
     cellNum_level = cellX*cellY
-
 
     A = np.empty((0,cellX*cellY*cellZ))
     b_w = np.empty((0,))
@@ -212,7 +231,6 @@ def tomography(proj, gridp, gridl, gridh, network, tropo, mapping_function, ep, 
                         A_row = np.zeros((1,cellX*cellY*cellZ))
 
 
-
                         A_row_3D = np.zeros((cellX, cellY, cellZ))
 
                         for n in nods[1:,:]:
@@ -224,11 +242,9 @@ def tomography(proj, gridp, gridl, gridh, network, tropo, mapping_function, ep, 
 
                             A_row_3D[mid[0,0], mid[1,0], mid[2,0]] = n[2]
 
-
-
                         A_row = matrix2vector(A_row_3D)
 
-
+                        
                         A = np.append(A, [A_row], axis=0)
                         b_w = np.append(b_w, [swd*10**6])
                         stations.append(sta.id)

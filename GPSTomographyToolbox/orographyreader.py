@@ -8,14 +8,14 @@ import epoch
 
 class OrographyReader(object):
 
-    """
-        OrographyReader class to read Orography grid file
+    """!OrographyReader class to read Orography grid file
 
-            :param fileName: name of Orography file (string)
+            
     """
 
     def __init__(self, fileName):
-        """OrograpgyReader constructor
+        """OrograpgyReader initializer
+        @param fileName (string): name of Orography file 
 
         """
 
@@ -38,7 +38,7 @@ class OrographyReader(object):
 
 
     def _readBody(self):
-        """read orography file body
+        """!read orography file body
 
         """
         line = self.fid.readline()
@@ -75,7 +75,7 @@ class OrographyReader(object):
 
 
     def _readHeader(self):
-        """read Orography header
+        """!read Orography header
 
         """
 
@@ -94,11 +94,13 @@ class OrographyReader(object):
         self.lam = np.arange(self.l_min, self.l_max+self.l_d, self.l_d)
 
     def getOro(self, st):
+        """!get orography at the given station
+        @param st (Point, Station): station
+        """
         plh = st.getPLH()[:,0]
 
 
         f = interpolate.interp2d(self.phi, self.lam, self.grid.T)
-        print(f(plh[0]*180/np.pi, plh[1]*180/np.pi))
 
         return f(plh[0]*180/np.pi, plh[1]*180/np.pi)
 
