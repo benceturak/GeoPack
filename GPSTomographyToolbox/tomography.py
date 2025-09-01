@@ -8,10 +8,10 @@ from vector2matrix import vector2matrix
 import traceback
 
 
-## @brief Calculate each rays' length through the tomographic grid and Slant Wet Delay using VIenna Mapping Function 1 for setting up the design matrix a measurements vetor of the equation system
+## @brief Calculate each rays' length through the tomographic grid and Slant Wet Delay using Vienna Mapping Function 1 for setting up the design matrix a measurements vector of the equation system
 # @file tomography.py
 def tomography(proj, gridp, gridl, gridh, network, tropo, mapping_function, ep, constellation=('G','R','E'), ignore_stations=[]):
-    """!Calculate each rays' length through the tomographic grid and Slant Wet Delay using VIenna Mapping Function 1 for setting up the design matrix a measurements vetor of the equation system
+    """!Calculate each rays' length through the tomographic grid and Slant Wet Delay using Vienna Mapping Function 1 for setting up the design matrix a measurements vector of the equation system
     @param proj (GetLocal): projections class to get local coordinates from ECEF coordinates
     @param gridp (np.array): tomographic grid (longitude) in radians
     @param gridl (np.array): tomographic grid (latitude) in radians

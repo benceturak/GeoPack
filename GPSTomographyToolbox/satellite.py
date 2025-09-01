@@ -17,11 +17,7 @@ SP3 = 1
 BRDC = 2
 
 class Satellite(object):
-    """
-        Satellite class for contain and calc position
-
-            :param prn: satellite PRN
-            :param nav: navigation message (dictionary)
+    """!Satellite class for contain and calc position
     """
     def __new__(self, prn='', nav={}):
         if prn[0] == 'G':
@@ -33,7 +29,9 @@ class Satellite(object):
 
     def __init__(self, prn='', nav={}, coords=[]):
         """Satellite constructor
-
+        @param prn (str): satellite PRN, default: ''
+        @param nav (dict): navigation message, default: {}
+        @partam coords (numoy array): list of coordinates, default: []
         """
         self.system = prn[0]
         self.prn = (prn)
@@ -42,12 +40,21 @@ class Satellite(object):
         self.source = None
     @property
     def l1(self):
+        """!get wavelength of L1 frequency
+        @return (float): wavelength of L1 frquency
+        """
         return scipy.constants.c/self.f1
     @property
     def l2(self):
+        """!get wavelength of L2 frequency
+        @return (float): wavelength of L2 frquency
+        """
         return scipy.constants.c/self.f2
     @property
     def l5(self):
+        """!get wavelength of L5 frequency
+        @return (float): wavelength of L5 frquency
+        """
         return scipy.constants.c/self.f5
 
     def getTimeFrameByElevAzimuthMask(self, elevation, azimuth, st):
@@ -60,9 +67,9 @@ class Satellite(object):
         return np.array([start, end])
 
     def addNavMess(self, nav):
-        """add new navigation message of epoch
+        """add new navigation message of an epoch
 
-            :param nav: navigation message (dictionary)
+        @param nav (dictionary): navigation message
 
         """
         self.navigationDatas.append(nav)
@@ -71,7 +78,7 @@ class Satellite(object):
     def addSP3coords(self, coords):
         """add new coordinates to satellite
 
-            :param coords: navigation message (dictionary)
+        @param coords (numpy array): list of coordinates from SP3 file
 
         """
         self.coords = coords
@@ -79,10 +86,9 @@ class Satellite(object):
 
     def getElevAzimuth(self, st, epoch):
         """get elevetion and azimuth angle from point at epoch
-            :param st: (Point)
-            :param epoch:
-
-            :return: elevation and azimuth angle in numpy vector (ndarray)
+        @param st (Point): refernce station
+        @param epoch (Epoch): reference epoch
+        @return (numpy array): elevation and azimuth angle in radian
         """
         if not isinstance(st, Point):
             raise TypeError("st must be Point type!")
@@ -103,8 +109,8 @@ class Satellite(object):
     def getEpochsInValidTimeFrame(self, timeDiff=Epoch(np.array([0,0,0,0,15,0]))):
         """method to get epochs in the given messages valid time frame
 
-            :param timeDiff: difference between 2 epoch (Epoch), default 15 minutes
-            :return: list of epochs in the valid time frame (np.ndarray(Epoch))
+        @param timeDiff (Epoch): difference between 2 epoch (Epoch), default: Epoch(np.array([0,0,0,0,15,0]))
+        @return (list, Epoch): list of epochs in the valid time frame
         """
 
         #initalize vars
@@ -141,17 +147,22 @@ class Satellite(object):
 
 
 
-    def getSatPosSP3(self, epoch, mod=0):
+    def getSatPosSP3(self, epoch):
+        """!get position of the satellite at the given epoch
+        @param epoch (Epoch): reference epoch
+        @return (Point): position of the satellite at the given apoch
+        
+        """
         #print(np.shape(self.coords))
         #print(self.coords)
 
         return Point(coord=self.coords[np.where(self.coords[:,0] == epoch)[0], 1:4], system=ellipsoid.WGS84())
 
     def getSatPosNav(self, epoch):
-        """get satellite position at an epoch
-
-                :param epoch: timestamp when we get the position of satellite (Epoch)
-                :returns: position of satellite at given epoch (Point)
+        """!get position of the satellite at the given epoch
+        @param epoch (Epoch): reference epoch
+        @return (Point): position of the satellite at the given apoch
+        
         """
         if self.system == 'G':#GPS satellite
             return self._getGPSSatPos(epoch)
@@ -159,6 +170,11 @@ class Satellite(object):
         elif self.system == 'E':pass#Galileo satellite
 
     def getSatPos(self, epoch):
+        """!get position of the satellite at the given epoch
+        @param epoch (Epoch): reference epoch
+        @return (Point): position of the satellite at the given apoch
+        
+        """
         if self.source == BRDC:
             return self.getSatPosNav(epoch)
         elif self.source == SP3:
@@ -169,6 +185,8 @@ class Satellite(object):
 
 
 class GPSSat(Satellite):
+    """!GPS Satellite class for contain and calculate position
+    """
     f1 = 1575.42*10**6#Hz
     f2 = 1227.60*10**6#Hz
     f5 = 1176.45*10**6#Hz
@@ -177,9 +195,10 @@ class GPSSat(Satellite):
         return object.__new__(self)
 
     def getValidEph(self, epoch):
-        """get valid navigation message for epoch
+        """!get valid navigation message for an epoch
 
-                :param epoch: timestamp what we get valid nav message for (Epoch)
+        @param epoch (Epoch): reference epoch
+        @return (list): valid nevigation message
         """
         #valid time frame from epoch
         min = epoch - Epoch(np.array([0, 0, 0, 1, 0, 0]))
@@ -194,10 +213,10 @@ class GPSSat(Satellite):
         raise TimeError("Epoch out of time frame!")
 
     def getSatPosNav(self, epoch):
-        """get satellite position in case of GPS satellite
+        """!get satellite position in case of GPS satellite
 
-                :param epoch: timestamp when we get the position of satellite (Epoch)
-                :returns: position of satellite at given epoch (Point)
+        @param epoch (Epoch): timestamp when we get the position of satellite
+        @return (Point): position of satellite at given epoch
         """
         #get valid navigation data to calculate the satellite position
         ephemerids = self.getValidEph(epoch)
@@ -258,35 +277,56 @@ class GPSSat(Satellite):
 
     @property
     def T1(self):
+        """!get L1 period time
+        @return (float): L1 period time in seconds
+        """
         return 1/self.f1
     @property
     def T2(self):
+        """!get L2 period time
+        @return (float): L2 period time in seconds
+        """
         return 1/self.f2
     @property
     def T5(self):
+        """!get L5 period time
+        @return (float): L5 period time in seconds
+        """
         return 1/self.f5
 
 class GLONASSSat(Satellite):
+    """!GLONASS Satellite class for contain and calculate position
+    """
     def __new__(self, prn='', nav={}):
         return object.__new__(self)
 
     def __init__(self, prn='', nav={}):
+        """!GLONASSSat initilaizer
+        @param prn (str): PRN number
+        @param nav (dict): navigation messages
+        """
         super(GLONASSSat, self).__init__(prn, nav)
         self.diffEqSolved = np.empty((0,8))
 
     @property
     def f1(self):
+        """!get L1 frequency of the satellite
+        @return (float): L1 frequency in Hz
+        """
         return (1602 + self.navigationDatas[0]['freqNum']*0.5625)*10**6
 
     @property
     def f2(self):
+        """!get L2 frequency of the satellite
+        @return (float): L2 frequency in Hz
+        """
         return (1246 + self.navigationDatas[0]['freqNum']*0.4375)*10**6
 
 
     def getValidEph(self, epoch):
-        """get valid navigation message for epoch
-
-                :param epoch: timestamp what we get valid nav message for (Epoch)
+        """!get valid navigation message for epoch
+        @param epoch (Epoch): timestamp what of valid nav message for (Epoch)
+        @return (list): valid navigation message
         """
         #valid time frame from epoch
         min = epoch - Epoch(np.array([0, 0, 0, 0, 15, 0]))
@@ -302,10 +342,9 @@ class GLONASSSat(Satellite):
 
 
     def getSatPosNav(self, epoch):
-        """get satellite position in case of GLONASS satellite
-
-                :param epoch: timestamp when we get the position of satellite (Epoch)
-                :returns: position of satellite at given epoch (Point)
+        """!get satellite position in case of GLONASS satellite
+        @param epoch (Epoch): timestamp when of the position of satellite
+        @return (Point): position of satellite at given epoch
         """
 
 
@@ -392,6 +431,8 @@ class GLONASSSat(Satellite):
 
 
 class GalileoSat(Satellite):
+    """!GLONASS Satellite class for contain and calculate position
+    """
     f1 = 1575.42*10**6#Hz
     f5 = 1191.795*10**6#Hz
     f5a = 1176.45*10**6#Hz
@@ -402,9 +443,10 @@ class GalileoSat(Satellite):
         return object.__new__(self)
 
     def getValidEph(self, epoch):
-        """get valid navigation message for epoch
+        """!get valid navigation message for an epoch
 
-                :param epoch: timestamp what we get valid nav message for (Epoch)
+        @param epoch (Epoch): reference epoch
+        @return (list): valid nevigation message
         """
         #valid time frame from epoch
         min = epoch - Epoch(np.array([0, 0, 0, 0, 5, 0]))
@@ -419,10 +461,10 @@ class GalileoSat(Satellite):
         raise TimeError("Epoch out of time frame!")
 
     def getSatPosNav(self, epoch):
-        """get satellite position in case of GPS satellite
+        """!get satellite position in case of GPS satellite
 
-                :param epoch: timestamp when we get the position of satellite (Epoch)
-                :returns: position of satellite at given epoch (Point)
+        @param epoch (Epoch): timestamp when we get the position of satellite
+        @return (Point): position of satellite at given epoch
         """
         #get valid navigation data to calculate the satellite position
         ephemerids = self.getValidEph(epoch)
@@ -482,16 +524,31 @@ class GalileoSat(Satellite):
 
     @property
     def T1(self):
+        """!get L1 period time
+        @return (float): L1 period time in seconds
+        """
         return 1/self.f1
     @property
     def T5(self):
+        """!get L5 period time
+        @return (float): L5 period time in seconds
+        """
         return 1/self.f5
     @property
     def T5a(self):
+        """!get L5a period time
+        @return (float): L5a period time in seconds
+        """
         return 1/self.f5a
     @property
     def T5b(self):
+        """!get L5b period time
+        @return (float): L5b period time in seconds
+        """
         return 1/self.f5b
     @property
     def T6(self):
+        """!get L6 period time
+        @return (float): L6 period time in seconds
+        """
         return 1/self.f6

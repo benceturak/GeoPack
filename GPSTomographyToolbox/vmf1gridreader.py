@@ -7,16 +7,14 @@ from station import Station
 import epoch
 
 class VMF1GridReader(object):
-
-    """
-        VMF1GridReader class to read VMF1 (Vienna Mapping Function) grid file format file
-
-            :param fileName: name of VMF1 file (string)
+    """!VMF1GridReader class to read VMF1 (Vienna Mapping Function) grid file format file
+    
     """
 
     def __init__(self, fileNames, oro):
         """VMF1GridReader constructor
-
+        @param fileName (str): name of VMF1 file
+        @param oro (str): name of orography file
         """
 
         self.fileNames = fileNames#filename
@@ -101,7 +99,7 @@ class VMF1GridReader(object):
                 self.zdw = np.array([zdw])
 
     def _readBody(self):
-        """read TRP body
+        """!read TRP body
 
         """
         line = self.fid.readline()
@@ -137,7 +135,7 @@ class VMF1GridReader(object):
             self.grid = np.array([grid])
 
     def _readHeader(self):
-        """read TRP header
+        """!read TRP header
 
         """
 
@@ -172,6 +170,10 @@ class VMF1GridReader(object):
                 break
 
     def getA_h(self, st, ep):
+        """!get hydrostatic A parameter
+        @param 
+        
+        """
         plh = st.getPLH()[:,0]
 
         i = np.where(np.abs(self.epochs - ep.MJD) <= 0.25)[0]

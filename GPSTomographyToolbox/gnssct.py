@@ -1,33 +1,33 @@
 #!/usr/bin/env python3
 
 ##
-# @mainpage OpATOM - An Open Source Toolbox for Atmosperic Tomography
+# @mainpage OpATOM - An Open Source Toolbox for Atmospheric Tomography
 #
 # @section description Description
-# OpAtom toolbox toolbox provides a tomographic algorithm that capable of estimate a 3D wet refractivity
+# OpAtom toolbox provides a tomographic algorithm that capable of estimate a 3D wet refractivity
 # model in Eastern Europe. The sizes of the tomographic grid are specified in the input files
 # listed below. This algorithm uses an approximate cartesian reference system in which the
 # length of the rays can be easily calculated. This Cartesian reference system is defined in the
 # getlocal.py file and must be modified in case it is used in another area.
 #
-# @section depencies Module Requirements
+# @section dependencies Module Requirements
 # The toolbox has been tested on Ubuntu 20.04 using python 3.8.
-# Module depencies:
+# Module dependencies:
 # - NumPy
 # - SciPy
 # - Wget
-# - Matlotlib
+# - Matplotlib
 # 
 # @section usage Usage
 # 
 # @code{.sh}
 # gnssct.py [OPTION]
-# -s, --satellites   location of satellite orbits file in .SP3 format
+# -s, --satellites   location of the satellite orbits file in .SP3 format
 # -S, --stations     location of the station coordinates file in Bernese .CRD format
-#     --gridp        location of grid file in the direction of North-South in .csv format (degrees)
-#     --gridl        location of grid file in the direction of East-West in .csv format (degrees)
-#     --gridh        location of elevation grid file .csv format (metres)
-# -v, --vmf1loc      location of VMF1 parameters grid files directory
+#     --gridp        location of the grid file in North-South direvtion in .csv format (degrees)
+#     --gridl        location of the grid file in East-West direction in .csv format (degrees)
+#     --gridh        location of the elevation grid file .csv format (metres)
+# -v, --vmf1loc      location of the VMF1 parameters grid files directory
 # -i, --initial_w    location of the initial wet refractivity values in .csv format
 # -e, --epoch        epoch in format YYYY-MM-DD-hh-mm-ss
 # 
@@ -38,7 +38,7 @@
 # gridh=./sample_data/gridh.csv --vmf1loc=./sample_data/vmf1/ --epoch=2024-2-9-2-0-0 --
 # initial_w=./sample_data/raobs/files/12843_2024-2-8_11.csv
 # @endcode
-#The VMF1 parameters grid files must be placed in this directory, and the name format must be: YYYY/VMFG_YYYYMMDD.Hhh
+# The VMF1 parameters grid files must be placed in this directory, and the name format must be: YYYY/VMFG_YYYYMMDD.Hhh
 # @section inpu_files Input files
 # For the tomographic processing, the following input files are required:
 # 
@@ -46,7 +46,7 @@
 #      - Latitude
 #      - Longitude
 #      - Height
-#  - GNSS stations coordinates file (Bernese CRD format)
+#  - GNSS station coordinates file (Bernese CRD format)
 #  - Tropospheric delays file (Bernese TRP format)
 #  - VMF1 grid parameters file (VMF1 grid file)
 #  - Satellite orbit file (SP3 format)
@@ -81,7 +81,7 @@
 #   4  BBYS              3980358.47759  1382292.41144  4772772.14404    A 
 # @endcode
 # @section tropo_delay Tropospheric delay file
-# For calculating Slant Wet Delay (SWD) values, the Zenith Wet Delays ZWD and Tropospheric Gradient Values are required for each station. These files must be in Bernese TRP format, where ZWDs are in column CORR_U and Tropospheric gradients are in CORR_E and CORR_N. 
+# For calculating Slant Wet Delay (SWD) values, the Zenith Wet Delays (ZWD) and Tropospheric Gradient Values are required for each station. These files must be in Bernese TRP format, where ZWDs are in column CORR_U and Tropospheric gradients are in CORR_E and CORR_N. 
 # @code{.sh}
 #                                                                  09-FEB-24 02:42
 # -------------------------------------------------------------------------------------------------------------------------------------
@@ -183,7 +183,7 @@
 # @endcode
 # @section initial_refractivity Initial wet refractivity file
 # The initial values of the 3D Wet Refractivity model are necessary to solve the equation
-# system with the MART algorithm. Radio Sonde (RS) profiles are used to calculate these
+# system with the MART algorithm. Radiosonde (RS) profiles are used to calculate these
 # values, and these profiles are expanded to cover the entire area. After the calculation of the
 # Wet refractivity values, they are stored in csv format (Fig7).
 # @code{.sh}
@@ -205,7 +205,7 @@
 # grid files.
 # @section licenses Licenses
 # OpATOM project is under MIT license.
-# @section refrences Refrences
+# @section refrences References
 # - Bender M, Dick G, Ge M, Deng Z, Wickert J, Kahle HG, Raabe A, Tetzlaff G (2011) Development of a GNSS water vapour tomography system using algebraic reconstruction techniques. Adv Space Res 47:1704–1720. https://doi.org/10.1016/j.asr.2010.05.034 
 # - Boehm J, Kouba J, Schuh H (2009) Forecast Vienna mapping functions 1 for real-time analysis of space geodetic observations. J Geod 83:397–401. https://doi.org/10.1007/s00190-008-0216-y 
 # - Dach R, Lutz S, Walser P, Fridez P (2015) Bernese GNSS Software Version 5.2 User manual. https://doi.org/10.7892/boris.72297

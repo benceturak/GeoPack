@@ -3,9 +3,17 @@ import numpy as np
 
 
 class Rotation(object):
-
+    """!Rotation class to transform points from a CRD to another 
+    
+    """
     def __init__(self, x=0, y=0, z=0, order='xyz'):
+        """Rotation initializer
+        @param x (float): rotation angle around axis x in radian, default: 0
+        @param y (float): rotation angle around axis y in radian, default: 0
+        @param z (float): rotation angle around axis z in radian, default: 0
+        @param order (str): order of rotations' axis, default: 'xyz'
 
+        """
         Rx = np.array([[1, 0, 0], [0, math.cos(x), -math.sin(x)], [0, math.sin(x), math.cos(x)]])
         Ry = np.array([[math.cos(y), 0, math.sin(y)], [0, 1, 0], [-math.sin(y), 0, math.cos(y)]])
         Rz = np.array([[math.cos(z), -math.sin(z), 0], [math.sin(z), math.cos(z), 0], [0, 0, 1]])
@@ -24,6 +32,10 @@ class Rotation(object):
             self.matrix = np.dot(np.dot(Rz,Ry), Rx)
 
     def setRot(self, R):
+        """!set up rotation matrix directly
+        @param R (numpy array (3,3)): rotation matrix
+        
+        """
         self.matrix = R
 
     def __mul__(self, other):

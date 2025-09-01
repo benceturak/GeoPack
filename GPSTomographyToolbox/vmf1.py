@@ -1,13 +1,4 @@
 #!/usr/bin/env python3
-"""
-@file vmf1.py
-
-@brief dflkgjnsgjksndfgksjldf
-
-@section description_vmf1 Description
-ksdjf vasdlfasd uifash fliusdhfuia shdflajhsdf jahsdljfhasjdh fhaslj hflsh aéiojgaosjdfjasdbfajsifj 
-
-"""
 
 import numpy as np
 
@@ -42,15 +33,17 @@ class VMF1(object):
 
     def __init__(self, vmf1grid):
         """!VMF1 class initializer
-        @param vmf1grid (int): parsed VMF1 grid
-
-        @return num
+        @param vmf1grid (VMF1GridReader): parsed VMF1 grid
         """
         super(VMF1, self).__init__()
 
         self.vmf1grid = vmf1grid
 
     def heightCorrection(self, e):
+        """!get height correction
+        @param e (float): elevation angle
+        @return (float): height correction in meter
+        """
 
         return 1/np.sin(e) - NeillFormula(e, self.a_ht, self.b_ht, self.c_ht)
 
@@ -150,7 +143,7 @@ class VMF1(object):
         @param ep (Epoch): epoch
         @param grad_n (float): tropospheric gradient to the direction North
         @param grad_e (float): tropospheric gradient to the direction East
-        @retrun (float): slant hydrostatic delay
+        @return (float): slant hydrostatic delay
         """
 
         return self.fun_h(st, e, ep)*zd + grad_n*self.fun_h_der(st, e, ep)*np.cos(alpha) + grad_e*self.fun_h_der(st, e, ep)*np.sin(alpha)
@@ -164,7 +157,7 @@ class VMF1(object):
         @param ep (Epoch): epoch
         @param grad_n (float): tropospheric gradient to the direction North
         @param grad_e (float): tropospheric gradient to the direction East
-        @retrun (float): slant wet delay
+        @return (float): slant wet delay
         """
 
         return self.fun_w(st, e, ep)*zd + zd*grad_n*self.fun_w_der(st, e, ep)*np.cos(alpha) + zd*grad_e*self.fun_w_der(st, e, ep)*np.sin(alpha)
