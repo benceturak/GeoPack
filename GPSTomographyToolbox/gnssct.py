@@ -345,13 +345,12 @@ class GNSSCT(object):
 
         i = 0
 
-        fid = open(self.output_root + "results/rays/all_rays_"+str(self.ep)+".csv", 'a')
+        #fid = open(self.output_root + "results/rays/all_rays_"+str(self.ep)+".csv", 'a')
+        #for i in range(0, len(stations)):
+        #    row = str(stations[i]) + "," + str(satellites[i])
+        #    print(row , file=fid)
 
-        for i in range(0, len(stations)):
-            row = str(stations[i]) + "," + str(satellites[i])
-            print(row , file=fid)
-
-        fid.close()
+        #fid.close()
 
         i = 0
         while True:
@@ -438,23 +437,23 @@ class GNSSCT(object):
             if numOfRay == len(train_b_w_est):
                 break
 
-        fid = open(self.output_root + 'results/statistic.csv', 'a');
-        numOfRaysAfter = np.shape(train_b_w)[0]
+        #fid = open(self.output_root + 'results/statistic.csv', 'a');
+        #numOfRaysAfter = np.shape(train_b_w)[0]
 
-        print(str(self.ep)+","+str(numOfRaysBefore)+","+str(numOfRaysAfter), file=fid)
+        #print(str(self.ep)+","+str(numOfRaysBefore)+","+str(numOfRaysAfter), file=fid)
 
-        fid.close()
-
-
-
-        fid = open(self.output_root + "results/rays/discarded_rays_"+str(self.ep)+".csv", 'a')
-
-        for i in range(0, len(discarded_stations)):
-            row = str(discarded_stations[i]) + "," + str(discarded_satellites[i])
-            print(row , file=fid)
+        #fid.close()
 
 
-        fid.close()
+
+        #fid = open(self.output_root + "results/rays/discarded_rays_"+str(self.ep)+".csv", 'a')
+
+        #for i in range(0, len(discarded_stations)):
+        #    row = str(discarded_stations[i]) + "," + str(discarded_satellites[i])
+        #    print(row , file=fid)
+
+
+        #fid.close()
         
 
 
