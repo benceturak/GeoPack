@@ -241,8 +241,8 @@ import mart
 from vector2matrix import vector2matrix
 from matrix2vector import matrix2vector
 from tomography import tomography
-from plotoutliers import plotOutliers
-from plotrefractivity import plotRefractivity
+#from plotoutliers import plotOutliers
+#from plotrefractivity import plotRefractivity
 import station
 import traceback
 import gc
@@ -388,7 +388,7 @@ class GNSSCT(object):
             diffs = np.abs(train_b_w*10**-6 - train_b_w_est)
             #print(np.shape(elevAz[:,0].T))
             #print(np.shape(diffs))
-            forPlot = np.append([elevAz[:,0].T], [diffs], axis=0).T
+            #forPlot = np.append([elevAz[:,0].T], [diffs], axis=0).T
 
             #print(forPlot)
             thresholdElev = np.linspace(10,90,100)*np.pi/180#np.array([[10], [90]])
@@ -400,11 +400,9 @@ class GNSSCT(object):
 
             threshold = np.append([thresholdElev*180/np.pi], [thresholdSWD], axis=0).T
 
-            #print(threshold)
 
 
             #plotRegression(train_b_w_est, train_b_w*10**-6, filename, "Regression train-estimated (filter: " + str(i) +"):", self.ep, sigma)
-            #print(np.shape(np.abs(train_b_w*10**-6, train_b_w_est)))
             
 
 
@@ -415,7 +413,6 @@ class GNSSCT(object):
             indeces = np.where(np.abs(allowedDiff) > diffs)[0]
             discarded_indeces = np.where(np.abs(allowedDiff) <= diffs)[0]
 
-            #print(diffs)
             train_A_w = train_A_w[indeces,:]
             train_b_w = train_b_w[indeces]
 
@@ -426,10 +423,9 @@ class GNSSCT(object):
             elevAz, discarded_elevAz = elevAz[indeces,:], elevAz[discarded_indeces,:]
             diffs, discarded_diffs = diffs[indeces], diffs[discarded_indeces]
 
-            discarded_forPlot = np.append([discarded_elevAz[:,0].T], [discarded_diffs], axis=0).T
-
-            filename = self.output_root + "results/figures/outliers/outlier_filter_{1:4d}-{2:02d}-{3:02d}-{4:02d}_(filter_step_{0:d}).tif".format(i, self.ep.dt[0], self.ep.dt[1], self.ep.dt[2], self.ep.dt[3])
-            plotOutliers(forPlot, discarded_forPlot, threshold, filename)
+            #discarded_forPlot = np.append([discarded_elevAz[:,0].T], [discarded_diffs], axis=0).T
+            #filename = self.output_root + "results/figures/outliers/outlier_filter_{1:4d}-{2:02d}-{3:02d}-{4:02d}_(filter_step_{0:d}).tif".format(i, self.ep.dt[0], self.ep.dt[1], self.ep.dt[2], self.ep.dt[3])
+            #plotOutliers(forPlot, discarded_forPlot, threshold, filename)
 
             discarded_stations = np.append(discarded_stations, stations[discarded_indeces])
             discarded_satellites = np.append(discarded_satellites, satellites[discarded_indeces])
@@ -465,7 +461,7 @@ class GNSSCT(object):
 
         self.Nw_3D = vector2matrix(Nw_vec, (self.cellX, self.cellY, self.cellZ))
         filename = self.output_root + "results/figures/refractivity/refractivity_{0:4d}-{1:02d}-{2:02d}-{3:02d}.tif".format(ep.dt[0], ep.dt[1], ep.dt[2], ep.dt[3])
-        plotRefractivity(filename, self.Nw_3D, self.ep)
+        #plotRefractivity(filename, self.Nw_3D, self.ep)
 
         gc.collect()
 
