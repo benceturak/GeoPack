@@ -1,10 +1,5 @@
-import sys
-sys.path.append('../../src')
-sys.path.append('../../src/bernese_formats')
-import epoch
-import numpy as np
-import matplotlib.pyplot as plt
 
+import matplotlib.pyplot as plt
 def refractivityProfile(names,profiles, loc, fname, ep):
     font = {'size': 8}
     plt.rc('font', **font)

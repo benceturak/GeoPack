@@ -54,15 +54,13 @@ sondes = [
 #{'id': 10584, 'phi': 50.57, 'lam': 10.37},
 #{'id': 10739, 'phi': 48.83, 'lam': 9.20},
 #{'id': 10868, 'phi': 48.25, 'lam': 11.55},
-{'id': 11747, 'phi': 49.45, 'lam': 17.13},
+{'id': 11747, 'phi': 49.45, 'lam': 17.13, "N": 43.9189},
 #{'id': 12374, 'phi': 52.40, 'lam': 20.97},
-{'id': 14240, 'phi': 45.82, 'lam': 16.03},
+{'id': 14240, 'phi': 45.82, 'lam': 16.03, "N": 45.9741},
 #{'id': 15420, 'phi': 44.50, 'lam': 26.13},
-{'id': 12843, 'phi': 47.43, 'lam': 19.18},
-{'id': 12982, 'phi': 46.25, 'lam': 20.10},
-{'id': 11952, 'phi': 49.03, 'lam': 20.32}
-
-
+{'id': 12843, 'phi': 47.43, 'lam': 19.18, "N": 43.6218},
+{'id': 12982, 'phi': 46.25, 'lam': 20.10, "N": 43.4122},
+{'id': 11952, 'phi': 49.03, 'lam': 20.32, "N": 42.2893}
 
 ]
 
@@ -105,6 +103,8 @@ for ep in eps:
         if(np.shape(x0_3D_w_profile)[0] > 0):
             break
     print('AAA')
+    x0_3D_w_profile[:,0] += sondes[2]['N']#geoidundulation correction for initial profile
+    print(x0_3D_w_profile)
     
     initial_profile_val = np.empty((len(gridh)-1,))
     nanret = False
@@ -153,11 +153,15 @@ for ep in eps:
 
         if np.shape(sonde_profile)[0] == 0:
             continue
+        sonde_profile[:,0] += RS['N']#geoidundulation correction for each RS profile
 
         profile_output = "results/figures/profiles/profile_{4:4d}_{0:4d}-{1:02d}-{2:02d}-{3:02d}.tif".format(ep.dt[0], ep.dt[1], ep.dt[2], ep.dt[3], RS["id"])
         refractivityprofile.refractivityProfile(('Radiosonde', 'Initial', 'Tomography'), (sonde_profile, initial_profile, tomography_profile), str(RS["id"]), profile_output, ep)
 
-        stat_sonde = sonde_profile[np.all((sonde_profile[:,0] >= 500 , sonde_profile[:,0] <= 10000), axis=0), :]
+        
+        
+        
+        stat_sonde = sonde_profile[np.all((sonde_profile[:,0] >= tomography_profile[0,0] , sonde_profile[:,0] <= 10000), axis=0), :]
 
         interp_tomography = interpolate.interp1d(tomography_profile[:,0],tomography_profile[:,1], kind="linear")
 
@@ -180,6 +184,7 @@ for ep in eps:
 
         fid = open('results/figures/profiles/profile_residuals.csv', 'a')
         residuals = np.append([stat_sonde[:,0]], [v], axis=0).T
+        print(residuals)
         for r in residuals:
             print(str(RS['id']) + "," + str(ep) + "," + str(r[0]) + "," + str(r[1]) , file=fid)
 

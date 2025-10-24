@@ -92,7 +92,7 @@ STATIONS=$DIR"sample_data/WEEK2304.CRD"
 
 EPOCH=$YEAR"-"$MONTH"-"$DAY"-"$HOUR"-0-0"
 echo $EPOCH
-cd $CTSCRIPT
+#cd $CTSCRIPT
 CHAR=`awk -v n=$HOUR 'BEGIN{printf "%c", 65+n}'`
 
 TRPFILE=$TRP"CO`date -u -d"$YEAR-$MONTH-$DAY $HOUR:$MINUTE:$SECOND" +%y%j`"$CHAR".TRP"

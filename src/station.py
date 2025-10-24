@@ -15,7 +15,15 @@ class Station(point.Point):
     #    else:
     #        raise TypeError()
 
-
+    def __sub__(self, other):
+        if not isinstance(other, point.Point):
+            raise TypeError("other must be Point type")
+        return Station(id=self._id, code=self.code, coord=(self.xyz - other.xyz), system=self.system)
+    
+    def __add__(self, other):
+        if not isinstance(other, point.Point):
+            raise TypeError("other must be Point type")
+        return Station(id=self._id, code=self.code, coord=(self.xyz + other.xyz), system=self.system)
 
 
 

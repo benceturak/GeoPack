@@ -2,8 +2,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-fid = open("figures/profiles/profile_residuals.csv")
-
+fid = open("results/figures/profiles/profile_residuals_integral_20242.csv")
+#fid = open("results/figures/profiles/profile_residuals.csv")
 residuals = np.empty((0,3))
 colors = np.empty((0,))
 for line in fid.readlines():
@@ -22,7 +22,6 @@ for line in fid.readlines():
     elif data[0] == "11952":
         c = "cyan"
     else:
-        print(data[0])
         c = "black"
     colors = np.append(colors, c)
 
@@ -35,7 +34,8 @@ residuals_sorted = residuals[np.argsort(residuals[:,1])]
 #print(residuals_sorted)
 #print(np.shape())
 
-fig, ax = plt.subplots()
+#fig, ax = plt.subplots()
+fig, ax = plt.subplots(figsize=(3.31,3))
 
 # Example data
 y = residuals_sorted[:,1]
@@ -87,50 +87,57 @@ for s in stations:
 
         #x_fr[i] = x_bar[np.all((y_bar > heights[i], y_bar <= heights[i+1]), axis=0)]
         x_fr =x_bar[np.all((y_bar > heights[i], y_bar <= heights[i+1]), axis=0)]
-        while(True):
-            mean = np.mean(x_fr)
-            std = np.std(x_fr)
+        print("#########################x")
+        print(heights[i])
+        try:
+            while(True):
+                mean = np.mean(x_fr)
+                std = np.std(x_fr)
+                print(x_fr)
+                print("_____________________________________________________________________________")
+                print(mean)
+                print(std)
+                max_i = np.argmax(x_fr - mean)
+                min_i = np.argmin(x_fr - mean)
 
-            max_i = np.argmax(x_fr - mean)
-            min_i = np.argmin(x_fr - mean)
-            print("MAXXXXXXXXXXXXXXxx")
-            print(max_i)
+                min = mean - 3*std
+                max = mean + 3*std
 
-            min = mean - 3*std
-            max = mean + 3*std
+                before = np.shape(x_fr)
 
-            before = np.shape(x_fr)
-            x_fr = x_fr[np.all((x_fr >= min, x_fr <= max), axis=0)]
-            after = np.shape(x_fr)
-            print(before)
-            print(after)
-            if before == after:
-                break
+                x_fr = x_fr[np.all((x_fr >= min, x_fr <= max), axis=0)]
+                after = np.shape(x_fr)
+                
+                if before == after:
+                    break
+            x_min = np.append(x_min, x_fr[min_i])
+            x_max = np.append(x_max, x_fr[max_i])
+            x_mean = np.append(x_mean, mean)
+            x_std = np.append(x_std, std)
+        except:
+            x_min = np.append(x_min, 0)
+            x_max = np.append(x_max, 0)
+            x_mean = np.append(x_mean, 0)
+            x_std = np.append(x_std, 0)
 
-        x_min = np.append(x_min, x_fr[min_i])
-        x_max = np.append(x_max, x_fr[max_i])
-        x_mean = np.append(x_mean, mean)
-        x_std = np.append(x_std, std)
-
-    print('AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA')
-
+        
 
 
+
+    print(before[0])
+    print(x_min)
     stats = np.append([y_fr], [x_min], axis=0)
     stats = np.append(stats, [x_max], axis=0)
     stats = np.append(stats, [x_mean], axis=0)
     stats = np.append(stats, [x_std], axis=0).T
     p = ax.barh(h_m, x_mean, width ,label=s, align='center', color=barColors[k])
-    ax.hlines(h_m, -x_std, x_std, color=barColors[k])
-    print(stats)
-    np.savetxt("stats_"+s+".csv", stats, delimiter=",")
-    print('BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB')
+    ax.hlines(h_m, -x_std, x_std, color=barColors[k], linewidth=1)
+    np.savetxt("stats2_"+s+".csv", stats, delimiter=",")
     k = k + 1
 ax.vlines(0, 0, 12, color="black")
-ax.hlines((0,2,4,6,8,10,12), -10, 10, color="grey")
+ax.hlines((0,2,4,6,8,10,12), -20, 20, color="grey")
 
 
-print(y_fr, y_labels)
 
 print(np.shape(y[np.where(residuals_sorted[:,0] == 11747)]))
 print(np.shape(y[np.where(residuals_sorted[:,0] == 14240)]))
@@ -138,20 +145,26 @@ print(np.shape(y[np.where(residuals_sorted[:,0] == 12843)]))
 print(np.shape(y[np.where(residuals_sorted[:,0] == 12982)]))
 print(np.shape(y[np.where(residuals_sorted[:,0] == 11952)]))
 
-heights = (0,1000,2000,3000,5500,8000,12000)
+heights = (0.0,1.0,2.0,3.0,5.5,8.0,12.0) 
 
 ax.set_xlabel('Mean value and std of residuals [-]')
-ax.set_ylabel('Height [m]')
+ax.set_ylabel('Height [km]')
 ax.set_yticks(np.arange(7)*2)
 ax.set_yticklabels(heights)
 
-ax.set_title('Mean value and std of residuals for each atmospheric layers')
-plt.xlim(-7,7)
+#ax.set_title('Mean value and std of residuals for each atmospheric layers')
+plt.legend(prop = { "size": 8 })
+plt.xticks(fontsize=8)
+plt.yticks(fontsize=8)
+plt.rc('legend',fontsize=8)
+plt.legend(fontsize=8)
+
+plt.xlim(-15,15)
 plt.ylim(0,12)
 
 #ax.set_yticks((0,1,2,3,4,6), )
-plt.legend()
 #plt.show()
 #exit()
-plt.savefig("residuals_mean_std_colored.png")
+fname = "residuals_mean_std.tif"
+plt.savefig(fname, dpi=900, bbox_inches='tight')
 plt.close()

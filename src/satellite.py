@@ -49,6 +49,8 @@ class Satellite(object):
         return scipy.constants.c/self.f2
     
 
+    
+
     def getTimeFrameByElevAzimuthMask(self, elevation, azimuth, st):
         epochs = self.getEpochsInValidTimeFrame(Epoch(np.array([0,0,0,0,0,1.0])))
         start = epochs[0]
@@ -348,6 +350,14 @@ class GPSSat(Satellite):
     @property
     def T5(self):
         return 1/self.f5
+    
+    @property
+    def l_ionofree(self):
+        return scipy.constants.c/self.f_ionofree
+    
+    @property
+    def f_ionofree(self):
+        return self.f1 + self.f2
 
 class GLONASSSat(Satellite):
 
@@ -401,6 +411,14 @@ class GLONASSSat(Satellite):
     @property
     def f2(self):
         return (1246 + self.freqNum[self.prn]*0.4375)*10**6
+    
+    @property
+    def l_ionofree(self):
+        return scipy.constants.c/self.f_ionofree
+    
+    @property
+    def f_ionofree(self):
+        return self.f1 + self.f2
 
 
     def getValidEph(self, epoch):
@@ -524,6 +542,17 @@ class GalileoSat(Satellite):
     @property
     def l5b(self):
         return scipy.constants.c/self.f5b
+    
+    @property
+    def l_ionofree(self):
+        return scipy.constants.c/self.f_ionofree
+    @property
+    def l_ionofree_1_5b(self):
+        return scipy.constants.c/self.f_ionofree_1_5b
+    
+    @property
+    def f_ionofree_1_5b(self):
+        return self.f1 + self.f5b
 
     def __new__(self, prn='', nav={}):
         return object.__new__(self)
